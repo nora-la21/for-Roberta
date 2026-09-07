@@ -118,16 +118,25 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   padding:5px 9px;border-radius:6px;border:1px solid var(--line);color:var(--muted);
 }
 .tag.hot{border-color:var(--accent);color:var(--accent)}
+.tag.toggle{cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.tag.toggle:hover{border-color:var(--ink-2);color:var(--ink)}
+.tag.toggle[aria-pressed="true"]{background:var(--pine);border-color:var(--pine);color:var(--on-pine)}
 
 /* ============================================================
    THREE-COLUMN STAGE
    ============================================================ */
 .layout{
   display:grid;
-  grid-template-columns:238px minmax(0,1fr) 340px;
+  grid-template-columns:238px minmax(0,1fr);
   gap:0;
   align-items:start;
   min-height:calc(100vh - 76px);
+}
+/* Demo view is the default: Italian prototype only, no English on screen.
+   The "Note" button (or N) reveals the presenter notes. */
+body[data-notes="on"] .notes{display:block}
+@media (min-width:1181px){
+  body[data-notes="on"] .layout{grid-template-columns:238px minmax(0,1fr) 340px}
 }
 .rail{
   border-right:1px solid var(--line);
@@ -163,6 +172,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .stage-hint .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none}
 
 .notes{
+  display:none;
   border-left:1px solid var(--line);
   padding:26px 24px 48px;
   position:sticky;top:0;
@@ -484,11 +494,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   <div class="mark">RV</div>
   <div class="topbar-title">
     <strong>Roby&nbsp;Flow</strong>
-    <span>Clickable app prototype for Roberta Vanzella — yoga, Pilates, Animal Flow, fitness musicale</span>
+    <span>Prototipo dell'app per Roberta Vanzella — yoga, Pilates, Animal Flow, fitness musicale</span>
   </div>
-  <span class="tag hot">Clickable</span>
-  <span class="tag">12 screens</span>
-  <span class="tag">iOS &amp; Android</span>
+  <span class="tag hot">Cliccabile</span>
+  <span class="tag">12 schermate</span>
+  <span class="tag">iOS e Android</span>
+  <button class="tag toggle" id="notes-toggle" aria-pressed="false" title="Presenter notes (N)">Note</button>
 </header>
 
 <div class="layout">
@@ -496,28 +507,28 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   <!-- ============ SCREEN INDEX ============ -->
   <nav class="rail" id="rail" aria-label="Screen index">
     <div class="rail-group">
-      <div class="eyebrow">First run</div>
-      <button class="rail-item" data-go="welcome"><span class="num">01</span>Welcome</button>
-      <button class="rail-item" data-go="plans"><span class="num">02</span>Membership</button>
+      <div class="eyebrow">Primo accesso</div>
+      <button class="rail-item" data-go="welcome"><span class="num">01</span>Benvenuta</button>
+      <button class="rail-item" data-go="plans"><span class="num">02</span>Abbonamento</button>
     </div>
     <div class="rail-group">
-      <div class="eyebrow">Daily loop</div>
-      <button class="rail-item" data-go="home"><span class="num">03</span>Today</button>
-      <button class="rail-item" data-go="library"><span class="num">04</span>Class library</button>
-      <button class="rail-item" data-go="class"><span class="num">05</span>Class detail</button>
+      <div class="eyebrow">Uso quotidiano</div>
+      <button class="rail-item" data-go="home"><span class="num">03</span>Oggi</button>
+      <button class="rail-item" data-go="library"><span class="num">04</span>Lezioni</button>
+      <button class="rail-item" data-go="class"><span class="num">05</span>Scheda lezione</button>
     </div>
     <div class="rail-group">
-      <div class="eyebrow">Retention</div>
-      <button class="rail-item" data-go="programs"><span class="num">06</span>Programs</button>
-      <button class="rail-item" data-go="program"><span class="num">07</span>Program detail</button>
+      <div class="eyebrow">Continuità</div>
+      <button class="rail-item" data-go="programs"><span class="num">06</span>Percorsi</button>
+      <button class="rail-item" data-go="program"><span class="num">07</span>Scheda percorso</button>
       <button class="rail-item" data-go="community"><span class="num">08</span>Community</button>
     </div>
     <div class="rail-group">
-      <div class="eyebrow">Revenue</div>
-      <button class="rail-item" data-go="live"><span class="num">09</span>Live &amp; studio</button>
-      <button class="rail-item" data-go="booking"><span class="num">10</span>Booking confirmed</button>
-      <button class="rail-item" data-go="prenatal"><span class="num">11</span>Pregnancy track</button>
-      <button class="rail-item" data-go="profile"><span class="num">12</span>Profile</button>
+      <div class="eyebrow">Ricavi</div>
+      <button class="rail-item" data-go="live"><span class="num">09</span>Live e studio</button>
+      <button class="rail-item" data-go="booking"><span class="num">10</span>Prenotazione</button>
+      <button class="rail-item" data-go="prenatal"><span class="num">11</span>Gravidanza</button>
+      <button class="rail-item" data-go="profile"><span class="num">12</span>Profilo</button>
     </div>
   </nav>
 
@@ -1340,7 +1351,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
     <div class="stage-hint">
       <span class="dot"></span>
-      Everything on the phone is clickable — tab bar, cards, back arrows, filters. Arrow keys move between screens.
+      Tutto è cliccabile — barra in basso, schede, frecce indietro, filtri. Le frecce della tastiera cambiano schermata.
     </div>
   </main>
 
@@ -1582,10 +1593,24 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     if(pl){ togglePlay(); }
   });
 
+  /* ---------- presenter notes: hidden by default, N toggles ---------- */
+  var notesBtn = document.getElementById("notes-toggle");
+
+  function setNotes(on){
+    document.body.setAttribute("data-notes", on ? "on" : "off");
+    notesBtn.setAttribute("aria-pressed", on ? "true" : "false");
+    try{ localStorage.setItem("robyflow-notes", on ? "on" : "off"); }catch(err){}
+  }
+
+  notesBtn.addEventListener("click", function(){
+    setNotes(document.body.getAttribute("data-notes") !== "on");
+  });
+
   document.addEventListener("keydown", function(e){
     if(e.target.matches("input,textarea")) return;
     if(e.key === "ArrowRight"){ step(1); }
     if(e.key === "ArrowLeft"){ step(-1); }
+    if(e.key === "n" || e.key === "N"){ notesBtn.click(); }
   });
 
   /* ---------- fake player ---------- */
@@ -1603,6 +1628,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   }
 
   /* ---------- boot ---------- */
+  var savedNotes = null;
+  try{ savedNotes = localStorage.getItem("robyflow-notes"); }catch(err){}
+  setNotes(savedNotes === "on");
+
   var start = (location.hash || "").replace("#", "");
   go(views[start] ? start : "home");
 })();
