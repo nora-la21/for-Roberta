@@ -1,0 +1,1609 @@
+<title>Roby Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+/* ============================================================
+   TOKENS — page stage (theme-aware)
+   ============================================================ */
+:root{
+  --stage:#E6E4DC;
+  --stage-2:#F4F3EF;
+  --stage-3:#DEDCD3;
+  --ink:#16211C;
+  --ink-2:#3D4C45;
+  --muted:#67746C;
+  --line:#CBC8BE;
+  --line-soft:#DAD7CE;
+  --accent:#B0700F;
+  --accent-soft:#EFD9B4;
+  --pine:#24463A;
+  --on-pine:#F4F3EF;
+  --shadow:0 30px 70px -30px rgba(22,33,28,.45), 0 4px 14px -6px rgba(22,33,28,.2);
+
+  --display:"Fraunces",Georgia,"Times New Roman",serif;
+  --ui:"Manrope",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+
+  /* app palette — fixed: a device screen keeps its own identity */
+  --app-bg:#F6F5F1;
+  --app-surface:#FFFFFF;
+  --app-ink:#16211C;
+  --app-ink-2:#39473F;
+  --app-muted:#6B7770;
+  --app-line:#E5E3DA;
+  --app-pine:#24463A;
+  --app-pine-2:#376553;
+  --app-marigold:#E8A33D;
+  --app-marigold-ink:#8C5B0A;
+  --app-clay:#C97B6E;
+  --app-clay-soft:#F7E9E5;
+  --app-mint:#EDF2EE;
+  --app-sand:#F3EDE1;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --stage:#0E1512;
+    --stage-2:#151E1A;
+    --stage-3:#1B2621;
+    --ink:#E9E6DD;
+    --ink-2:#BEC7C0;
+    --muted:#8B978F;
+    --line:#28352E;
+    --line-soft:#202C26;
+    --accent:#E8A33D;
+    --accent-soft:#3A2E17;
+    --pine:#8CC0A9;
+    --on-pine:#0E1512;
+    --shadow:0 40px 90px -40px rgba(0,0,0,.8), 0 4px 18px -8px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --stage:#0E1512;
+  --stage-2:#151E1A;
+  --stage-3:#1B2621;
+  --ink:#E9E6DD;
+  --ink-2:#BEC7C0;
+  --muted:#8B978F;
+  --line:#28352E;
+  --line-soft:#202C26;
+  --accent:#E8A33D;
+  --accent-soft:#3A2E17;
+  --pine:#8CC0A9;
+  --on-pine:#0E1512;
+  --shadow:0 40px 90px -40px rgba(0,0,0,.8), 0 4px 18px -8px rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--stage);
+  color:var(--ink);
+  font-family:var(--ui);
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{margin:0;text-wrap:balance}
+p{margin:0}
+ul{margin:0;padding:0;list-style:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+.eyebrow{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);
+}
+
+/* ============================================================
+   PAGE CHROME
+   ============================================================ */
+.topbar{
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  padding:18px 28px;border-bottom:1px solid var(--line);
+  background:var(--stage-2);
+}
+.mark{
+  width:38px;height:38px;border-radius:11px;flex:none;
+  background:var(--pine);color:var(--on-pine);
+  display:grid;place-items:center;
+  font-family:var(--display);font-weight:700;font-size:16px;letter-spacing:.02em;
+}
+.topbar-title{display:flex;flex-direction:column;gap:1px;margin-right:auto}
+.topbar-title strong{font-family:var(--display);font-weight:600;font-size:19px;letter-spacing:-.01em}
+.topbar-title span{font-size:12.5px;color:var(--muted)}
+.tag{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  padding:5px 9px;border-radius:6px;border:1px solid var(--line);color:var(--muted);
+}
+.tag.hot{border-color:var(--accent);color:var(--accent)}
+
+/* ============================================================
+   THREE-COLUMN STAGE
+   ============================================================ */
+.layout{
+  display:grid;
+  grid-template-columns:238px minmax(0,1fr) 340px;
+  gap:0;
+  align-items:start;
+  min-height:calc(100vh - 76px);
+}
+.rail{
+  border-right:1px solid var(--line);
+  padding:22px 16px 40px;
+  position:sticky;top:0;
+  max-height:100vh;overflow-y:auto;
+}
+.rail-group{margin-bottom:18px}
+.rail-group > .eyebrow{padding:0 10px 7px}
+.rail-item{
+  display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  padding:8px 10px;border-radius:9px;color:var(--ink-2);
+  font-size:13.5px;font-weight:500;transition:background .15s,color .15s;
+}
+.rail-item:hover{background:var(--stage-3);color:var(--ink)}
+.rail-item .num{
+  font-family:var(--mono);font-size:10.5px;color:var(--muted);
+  width:18px;flex:none;
+}
+.rail-item[aria-current="true"]{background:var(--pine);color:var(--on-pine);font-weight:600}
+.rail-item[aria-current="true"] .num{color:inherit;opacity:.65}
+
+.stage{
+  padding:30px 20px 48px;
+  display:flex;flex-direction:column;align-items:center;gap:18px;
+  background:
+    radial-gradient(680px 420px at 50% 18%, color-mix(in srgb, var(--accent) 11%, transparent), transparent 70%),
+    var(--stage);
+}
+.stage-hint{
+  display:flex;align-items:center;gap:9px;color:var(--muted);font-size:12.5px;
+}
+.stage-hint .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none}
+
+.notes{
+  border-left:1px solid var(--line);
+  padding:26px 24px 48px;
+  position:sticky;top:0;
+  max-height:100vh;overflow-y:auto;
+  background:var(--stage-2);
+}
+
+/* ============================================================
+   PHONE FRAME
+   ============================================================ */
+.phone-wrap{
+  --s:1;
+  width:calc(414px * var(--s));
+  height:calc(836px * var(--s));
+}
+.phone{
+  width:414px;height:836px;
+  transform:scale(var(--s));transform-origin:top center;
+  border-radius:50px;
+  background:linear-gradient(160deg,#2B3B34,#101815 55%,#232E29);
+  padding:12px;
+  box-shadow:var(--shadow), 0 0 0 1.5px rgba(255,255,255,.07) inset;
+  position:relative;
+}
+.phone::after{
+  content:"";position:absolute;left:50%;transform:translateX(-50%);
+  top:24px;width:104px;height:26px;border-radius:14px;background:#0B100E;z-index:6;
+}
+.screen{
+  width:100%;height:100%;border-radius:39px;overflow:hidden;
+  background:var(--app-bg);color:var(--app-ink);
+  display:flex;flex-direction:column;position:relative;
+}
+
+/* status bar */
+.statusbar{
+  height:48px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 26px 4px;font-size:12.5px;font-weight:700;letter-spacing:.01em;
+  position:relative;z-index:5;
+}
+.statusbar.on-dark{color:#fff}
+.sb-right{display:flex;align-items:center;gap:5px}
+.sb-bar{width:3px;border-radius:1px;background:currentColor}
+.sb-batt{width:22px;height:11px;border:1.4px solid currentColor;border-radius:3px;position:relative;opacity:.9}
+.sb-batt::before{content:"";position:absolute;inset:2px;right:6px;background:currentColor;border-radius:1px}
+
+/* scrolling body */
+.app-scroll{flex:1;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+.app-scroll::-webkit-scrollbar{display:none}
+.pad{padding:0 20px}
+.stack{display:flex;flex-direction:column}
+
+/* app views */
+.view{display:none;height:100%;flex-direction:column}
+.view.active{display:flex}
+
+/* ============================================================
+   APP COMPONENTS
+   ============================================================ */
+.a-h1{font-family:var(--display);font-size:27px;font-weight:600;letter-spacing:-.02em;line-height:1.15}
+.a-h2{font-family:var(--display);font-size:19px;font-weight:600;letter-spacing:-.015em}
+.a-h3{font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+.a-label{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--app-muted);
+}
+.a-meta{font-size:12px;color:var(--app-muted);font-weight:500}
+
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:11px}
+.sec-head .link{font-size:12px;font-weight:600;color:var(--app-pine-2)}
+
+.appbar{
+  flex:none;display:flex;align-items:center;gap:12px;padding:2px 20px 14px;
+}
+.appbar .a-h2{margin-right:auto}
+.icon-btn{
+  width:36px;height:36px;border-radius:11px;flex:none;
+  display:grid;place-items:center;background:var(--app-surface);
+  border:1px solid var(--app-line);color:var(--app-ink-2);
+}
+.icon-btn.ghost{background:transparent;border-color:transparent}
+.icon-btn.on-dark{background:rgba(255,255,255,.16);border-color:transparent;color:#fff}
+
+.card{
+  background:var(--app-surface);border:1px solid var(--app-line);
+  border-radius:18px;padding:14px;
+}
+
+/* thumbnails built from gradients + line art, no external assets */
+.thumb{
+  position:relative;overflow:hidden;border-radius:14px;flex:none;
+  background:linear-gradient(145deg,var(--t1,#3C6455),var(--t2,#1E3A30));
+}
+.thumb > svg:not(.ico){position:absolute;inset:0;width:100%;height:100%}
+.thumb > svg.ico{position:relative}
+.thumb .dur{
+  position:absolute;right:6px;bottom:6px;z-index:2;
+  font-family:var(--mono);font-size:9.5px;color:#fff;
+  background:rgba(11,16,14,.62);padding:2px 5px;border-radius:5px;
+}
+.t-pilates{--t1:#3E6858;--t2:#1D362C}
+.t-yoga{--t1:#5C7F8C;--t2:#2A414B}
+.t-flow{--t1:#B07B2E;--t2:#5E3D11}
+.t-mobility{--t1:#6E7F5A;--t2:#33402A}
+.t-zumba{--t1:#C0705E;--t2:#6B3226}
+.t-prenatal{--t1:#C99A9A;--t2:#7A4E52}
+
+/* horizontal rails */
+.hrail{display:flex;gap:12px;overflow-x:auto;padding:2px 20px 4px;scrollbar-width:none}
+.hrail::-webkit-scrollbar{display:none}
+
+/* class list row */
+.row{
+  display:flex;gap:12px;align-items:center;width:100%;text-align:left;
+  background:var(--app-surface);border:1px solid var(--app-line);
+  border-radius:16px;padding:9px;transition:border-color .15s,transform .1s;
+}
+.row:hover{border-color:var(--app-pine-2)}
+.row:active{transform:scale(.99)}
+.row .thumb{width:70px;height:62px}
+.row-body{min-width:0;flex:1;display:flex;flex-direction:column;gap:3px}
+.row-body .t{font-size:13.5px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
+
+/* pills / chips */
+.pill{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;
+  background:var(--app-mint);color:var(--app-pine);
+}
+.pill.sand{background:var(--app-sand);color:var(--app-marigold-ink)}
+.pill.clay{background:var(--app-clay-soft);color:#8E4437}
+.pill.live{background:#FBE9E6;color:#A83B2A}
+
+.chips{display:flex;gap:8px;overflow-x:auto;padding:0 20px 2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{
+  flex:none;font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:999px;
+  border:1px solid var(--app-line);background:var(--app-surface);color:var(--app-ink-2);
+}
+.chip[aria-pressed="true"]{background:var(--app-pine);border-color:var(--app-pine);color:#fff}
+
+.seg{
+  display:flex;gap:3px;background:var(--app-line);padding:3px;border-radius:12px;
+}
+.seg button{
+  flex:1;font-size:12.5px;font-weight:600;padding:7px 4px;border-radius:9px;color:var(--app-ink-2);
+}
+.seg button[aria-pressed="true"]{background:var(--app-surface);color:var(--app-ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+/* buttons */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font-size:14px;font-weight:700;padding:13px 18px;border-radius:14px;
+  background:var(--app-pine);color:#fff;width:100%;transition:filter .15s;
+}
+.btn:hover{filter:brightness(1.1)}
+.btn.amber{background:var(--app-marigold);color:#2A1B04}
+.btn.outline{background:transparent;border:1.5px solid var(--app-line);color:var(--app-ink)}
+.btn.sm{font-size:12.5px;padding:8px 14px;width:auto;border-radius:11px}
+
+/* progress */
+.bar{display:block;height:6px;border-radius:99px;background:var(--app-line);overflow:hidden}
+.bar > i{display:block;height:100%;border-radius:99px;background:var(--app-pine-2)}
+.bar.amber > i{background:var(--app-marigold)}
+.bar.clay > i{background:var(--app-clay)}
+
+/* tab bar */
+.tabbar{
+  flex:none;display:flex;padding:9px 8px 22px;
+  background:color-mix(in srgb, var(--app-surface) 88%, transparent);
+  backdrop-filter:blur(14px);
+  border-top:1px solid var(--app-line);
+}
+.tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  font-size:9.5px;font-weight:600;color:var(--app-muted);padding:4px 0;
+}
+.tab[aria-current="true"]{color:var(--app-pine)}
+.tab svg{width:21px;height:21px}
+
+/* hero blocks */
+.hero-pine{
+  background:linear-gradient(155deg,#2E5747,#16281F);color:#fff;position:relative;overflow:hidden;
+}
+.hero-pine .deco{position:absolute;inset:0;opacity:.55}
+
+/* stat grid */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.stat{background:var(--app-surface);border:1px solid var(--app-line);border-radius:15px;padding:11px 12px}
+.stat b{display:block;font-family:var(--display);font-size:22px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+
+/* schedule */
+.slot{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--app-line)}
+.slot:last-child{border-bottom:0}
+.slot .time{font-family:var(--mono);font-size:12px;font-weight:500;width:44px;flex:none;padding-top:2px}
+.week{display:flex;gap:6px}
+.day{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:8px 0;border-radius:12px;border:1px solid transparent;font-size:11px;color:var(--app-muted);
+}
+.day b{font-size:14px;color:var(--app-ink);font-variant-numeric:tabular-nums}
+.day[aria-pressed="true"]{background:var(--app-pine);border-color:var(--app-pine);color:rgba(255,255,255,.75)}
+.day[aria-pressed="true"] b{color:#fff}
+
+/* day rows in a program */
+.dayrow{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--app-line);width:100%;text-align:left}
+.dayrow:last-child{border-bottom:0}
+.tick{
+  width:24px;height:24px;border-radius:50%;flex:none;display:grid;place-items:center;
+  border:1.5px solid var(--app-line);color:var(--app-muted);
+}
+.tick.done{background:var(--app-pine);border-color:var(--app-pine);color:#fff}
+.tick.today{border-color:var(--app-marigold);color:var(--app-marigold-ink);border-width:2px}
+
+/* quote from Roberta */
+.quote{
+  background:var(--app-sand);border-radius:16px;padding:13px 14px;
+  font-family:var(--display);font-size:14px;line-height:1.45;color:#4A3616;
+}
+.quote .who{display:block;margin-top:7px;font-family:var(--ui);font-size:11px;font-weight:700;letter-spacing:.02em;color:var(--app-marigold-ink)}
+
+/* settings list */
+.list-item{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:13px 0;border-bottom:1px solid var(--app-line);font-size:14px;font-weight:600}
+.list-item:last-child{border-bottom:0}
+.list-item .v{margin-left:auto;font-size:12.5px;font-weight:500;color:var(--app-muted)}
+
+/* plan cards */
+.plan{
+  width:100%;text-align:left;border:1.5px solid var(--app-line);background:var(--app-surface);
+  border-radius:18px;padding:14px;display:flex;gap:12px;align-items:flex-start;
+}
+.plan[aria-pressed="true"]{border-color:var(--app-pine);background:var(--app-mint)}
+.radio{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--app-line);flex:none;margin-top:2px;display:grid;place-items:center}
+.plan[aria-pressed="true"] .radio{border-color:var(--app-pine);background:var(--app-pine);color:#fff}
+
+/* toggle */
+.switch{width:42px;height:25px;border-radius:99px;background:var(--app-pine);position:relative;flex:none;margin-left:auto}
+.switch::after{content:"";position:absolute;top:2.5px;left:20px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .18s}
+.switch[aria-pressed="false"]{background:var(--app-line)}
+.switch[aria-pressed="false"]::after{left:2.5px}
+
+/* success burst */
+.burst{
+  width:76px;height:76px;border-radius:50%;display:grid;place-items:center;
+  background:var(--app-pine);color:#fff;margin:0 auto;
+  box-shadow:0 0 0 12px var(--app-mint);
+}
+
+/* ============================================================
+   NOTES PANEL
+   ============================================================ */
+.notes h2{font-family:var(--display);font-size:22px;font-weight:600;letter-spacing:-.02em;margin:6px 0 10px}
+.notes .n-list{display:flex;flex-direction:column;gap:9px;margin-top:6px}
+.notes .n-list li{display:flex;gap:9px;font-size:13.5px;color:var(--ink-2);line-height:1.5}
+.notes .n-list li::before{
+  content:"";width:5px;height:5px;border-radius:50%;background:var(--accent);
+  flex:none;margin-top:8px;
+}
+.n-why{
+  margin-top:20px;padding:14px;border-radius:13px;
+  background:var(--stage);border:1px solid var(--line-soft);
+}
+.n-why p{font-size:13.5px;color:var(--ink-2);margin-top:6px;line-height:1.5}
+.n-nav{display:flex;gap:8px;margin-top:22px}
+.n-nav button{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:7px;
+  padding:10px;border-radius:11px;border:1px solid var(--line);
+  font-size:13px;font-weight:600;color:var(--ink-2);background:var(--stage-2);
+}
+.n-nav button:hover:not(:disabled){background:var(--stage-3);color:var(--ink)}
+.n-nav button:disabled{opacity:.4;cursor:not-allowed}
+.n-foot{margin-top:26px;padding-top:18px;border-top:1px solid var(--line-soft);font-size:12px;color:var(--muted);line-height:1.6}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:1180px){
+  .layout{grid-template-columns:1fr;min-height:0}
+  .rail{
+    position:static;max-height:none;border-right:0;border-bottom:1px solid var(--line);
+    display:flex;gap:8px;overflow-x:auto;padding:12px 16px;
+  }
+  .rail-group{display:flex;align-items:center;gap:8px;margin:0}
+  .rail-group > .eyebrow{padding:0 4px 0 6px;white-space:nowrap}
+  .rail-item{width:auto;white-space:nowrap;border:1px solid var(--line);padding:7px 12px}
+  .rail-item .num{display:none}
+  .notes{position:static;max-height:none;border-left:0;border-top:1px solid var(--line)}
+}
+@media (max-width:520px){
+  .phone-wrap{--s:.78}
+  .stage{padding:20px 10px 34px}
+  .topbar{padding:14px 16px}
+}
+</style>
+
+<!-- icon sprite -->
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5h4v5"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></symbol>
+  <symbol id="i-route" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18.5" r="2.5"/><circle cx="18" cy="5.5" r="2.5"/><path d="M15.5 5.5H10a3.5 3.5 0 0 0 0 7h4a3.5 3.5 0 0 1 0 7H8.5"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 10a5.5 5.5 0 0 1 11 0c0 4 1.5 5.5 1.5 5.5H5S6.5 14 6.5 10z"/><path d="M10 19a2.2 2.2 0 0 0 4 0"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2c.5 3.5-1.5 4.8-3 6.4C8.2 10.3 7 12 7 14.3 7 18 9.9 21 13 21s6-2.7 6-6.6c0-3-1.6-5.4-3-7 .2 2-.7 3-1.6 3.4.4-3.4-.6-6.7-1.4-8.8z"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7.5-4.6-7.5-9.4A4.2 4.2 0 0 1 12 8a4.2 4.2 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h11M18 8h2M4 16h4M11 16h9"/><circle cx="16.5" cy="8" r="2"/><circle cx="9.5" cy="16" r="2"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4"/><path d="M8.5 7.5 12 4l3.5 3.5"/><path d="M5.5 13v5.5a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V13"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 19a6 6 0 0 1 12 0"/><path d="M16 5.5a3.2 3.2 0 0 1 0 6.3M17 19a6 6 0 0 0-2-4.5"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s6.5-6.1 6.5-10.5a6.5 6.5 0 1 0-13 0C5.5 14.9 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+</svg>
+
+<header class="topbar">
+  <div class="mark">RV</div>
+  <div class="topbar-title">
+    <strong>Roby&nbsp;Flow</strong>
+    <span>Clickable app prototype for Roberta Vanzella — yoga, Pilates, Animal Flow, fitness musicale</span>
+  </div>
+  <span class="tag hot">Clickable</span>
+  <span class="tag">12 screens</span>
+  <span class="tag">iOS &amp; Android</span>
+</header>
+
+<div class="layout">
+
+  <!-- ============ SCREEN INDEX ============ -->
+  <nav class="rail" id="rail" aria-label="Screen index">
+    <div class="rail-group">
+      <div class="eyebrow">First run</div>
+      <button class="rail-item" data-go="welcome"><span class="num">01</span>Welcome</button>
+      <button class="rail-item" data-go="plans"><span class="num">02</span>Membership</button>
+    </div>
+    <div class="rail-group">
+      <div class="eyebrow">Daily loop</div>
+      <button class="rail-item" data-go="home"><span class="num">03</span>Today</button>
+      <button class="rail-item" data-go="library"><span class="num">04</span>Class library</button>
+      <button class="rail-item" data-go="class"><span class="num">05</span>Class detail</button>
+    </div>
+    <div class="rail-group">
+      <div class="eyebrow">Retention</div>
+      <button class="rail-item" data-go="programs"><span class="num">06</span>Programs</button>
+      <button class="rail-item" data-go="program"><span class="num">07</span>Program detail</button>
+      <button class="rail-item" data-go="community"><span class="num">08</span>Community</button>
+    </div>
+    <div class="rail-group">
+      <div class="eyebrow">Revenue</div>
+      <button class="rail-item" data-go="live"><span class="num">09</span>Live &amp; studio</button>
+      <button class="rail-item" data-go="booking"><span class="num">10</span>Booking confirmed</button>
+      <button class="rail-item" data-go="prenatal"><span class="num">11</span>Pregnancy track</button>
+      <button class="rail-item" data-go="profile"><span class="num">12</span>Profile</button>
+    </div>
+  </nav>
+
+  <!-- ============ PHONE ============ -->
+  <main class="stage">
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="screen">
+
+          <!-- ---------- 01 WELCOME ---------- -->
+          <section class="view" data-view="welcome" style="background:linear-gradient(160deg,#2E5747 0%,#17291F 58%,#3A2C12 100%)">
+            <div class="statusbar on-dark">
+              <span>7:32</span>
+              <span class="sb-right"><i class="sb-bar" style="height:5px"></i><i class="sb-bar" style="height:7px"></i><i class="sb-bar" style="height:9px"></i><i class="sb-bar" style="height:11px"></i><i class="sb-batt"></i></span>
+            </div>
+            <div class="app-scroll" style="display:flex;flex-direction:column;color:#fff">
+              <div style="position:relative;height:290px;flex:none">
+                <svg viewBox="0 0 414 290" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;opacity:.5" aria-hidden="true">
+                  <g fill="none" stroke="#E8A33D" stroke-width="1.1">
+                    <circle cx="207" cy="150" r="52"/><circle cx="207" cy="150" r="80"/>
+                    <circle cx="207" cy="150" r="108"/><circle cx="207" cy="150" r="136"/>
+                  </g>
+                  <path d="M60 250c60-40 90 20 147-14s90 22 147-26" fill="none" stroke="#9FD3BB" stroke-width="1.4" opacity=".8"/>
+                </svg>
+                <div style="position:absolute;inset:0;display:grid;place-items:center">
+                  <div style="width:88px;height:88px;border-radius:26px;background:#E8A33D;color:#20301F;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:33px">RV</div>
+                </div>
+              </div>
+              <div class="pad stack" style="gap:14px">
+                <h1 class="a-h1" style="font-size:32px;color:#fff">Muoviti ogni giorno,<br>anche in 15 minuti.</h1>
+                <p style="font-size:14.5px;line-height:1.55;color:rgba(255,255,255,.78)">
+                  Yoga, Pilates, Animal Flow, mobility e fitness musicale. Oltre 200 lezioni con Roberta, nuove ogni settimana — a casa, in viaggio o in studio a Vicenza.
+                </p>
+                <div style="display:flex;gap:16px;margin:4px 0 2px">
+                  <div><b style="font-family:var(--display);font-size:21px">200+</b><div style="font-size:11px;color:rgba(255,255,255,.6)">lezioni on demand</div></div>
+                  <div><b style="font-family:var(--display);font-size:21px">6</b><div style="font-size:11px;color:rgba(255,255,255,.6)">live a settimana</div></div>
+                  <div><b style="font-family:var(--display);font-size:21px">12</b><div style="font-size:11px;color:rgba(255,255,255,.6)">percorsi guidati</div></div>
+                </div>
+              </div>
+              <div class="pad stack" style="gap:10px;margin-top:auto;padding-bottom:26px;padding-top:22px">
+                <button class="btn amber" data-go="plans">Prova 7 giorni gratis</button>
+                <button class="btn outline" style="border-color:rgba(255,255,255,.28);color:#fff" data-go="home">Ho già un account</button>
+                <p style="text-align:center;font-size:11px;color:rgba(255,255,255,.5)">Nessun vincolo. Disdici quando vuoi.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- ---------- 02 PLANS ---------- -->
+          <section class="view" data-view="plans">
+            <div class="statusbar"><span>7:32</span><span class="sb-right"><i class="sb-bar" style="height:5px"></i><i class="sb-bar" style="height:7px"></i><i class="sb-bar" style="height:9px"></i><i class="sb-bar" style="height:11px"></i><i class="sb-batt"></i></span></div>
+            <div class="appbar">
+              <button class="icon-btn ghost" data-go="welcome" aria-label="Indietro"><svg width="20" height="20"><use href="#i-left"/></svg></button>
+              <h2 class="a-h2">Abbonamento</h2>
+            </div>
+            <div class="app-scroll pad stack" style="gap:14px">
+              <div>
+                <h1 class="a-h1">Allenati con Roberta,<br>quando vuoi tu.</h1>
+                <p class="a-meta" style="margin-top:7px">I primi 7 giorni sono gratuiti. Poi scegli il piano.</p>
+              </div>
+
+              <div class="stack" style="gap:9px">
+                <button class="plan" aria-pressed="false" data-plan>
+                  <span class="radio"><svg width="12" height="12"><use href="#i-check"/></svg></span>
+                  <span style="flex:1">
+                    <span class="a-h3" style="display:block">Mensile</span>
+                    <span class="a-meta">Tutte le lezioni e i percorsi</span>
+                  </span>
+                  <span style="text-align:right"><b style="font-family:var(--display);font-size:19px">14,90 €</b><span class="a-meta" style="display:block">/mese</span></span>
+                </button>
+
+                <button class="plan" aria-pressed="true" data-plan>
+                  <span class="radio"><svg width="12" height="12"><use href="#i-check"/></svg></span>
+                  <span style="flex:1">
+                    <span class="a-h3" style="display:block">Annuale <span class="pill sand" style="margin-left:4px">2 mesi in regalo</span></span>
+                    <span class="a-meta">Il piano scelto dal 68% delle iscritte</span>
+                  </span>
+                  <span style="text-align:right"><b style="font-family:var(--display);font-size:19px">119 €</b><span class="a-meta" style="display:block">/anno</span></span>
+                </button>
+
+                <button class="plan" aria-pressed="false" data-plan>
+                  <span class="radio"><svg width="12" height="12"><use href="#i-check"/></svg></span>
+                  <span style="flex:1">
+                    <span class="a-h3" style="display:block">Studio + App</span>
+                    <span class="a-meta">4 lezioni in presenza al mese a Vicenza</span>
+                  </span>
+                  <span style="text-align:right"><b style="font-family:var(--display);font-size:19px">29 €</b><span class="a-meta" style="display:block">/mese</span></span>
+                </button>
+              </div>
+
+              <div class="card stack" style="gap:9px">
+                <span class="a-label">Incluso in ogni piano</span>
+                <ul class="stack" style="gap:7px">
+                  <li style="display:flex;gap:9px;font-size:13px"><span class="tick done" style="width:19px;height:19px"><svg width="11" height="11"><use href="#i-check"/></svg></span>Oltre 200 lezioni da 10 a 55 minuti</li>
+                  <li style="display:flex;gap:9px;font-size:13px"><span class="tick done" style="width:19px;height:19px"><svg width="11" height="11"><use href="#i-check"/></svg></span>Percorsi guidati e calendario personale</li>
+                  <li style="display:flex;gap:9px;font-size:13px"><span class="tick done" style="width:19px;height:19px"><svg width="11" height="11"><use href="#i-check"/></svg></span>Live settimanali con replay per 7 giorni</li>
+                  <li style="display:flex;gap:9px;font-size:13px"><span class="tick done" style="width:19px;height:19px"><svg width="11" height="11"><use href="#i-check"/></svg></span>Percorso gravidanza e post-parto</li>
+                  <li style="display:flex;gap:9px;font-size:13px"><span class="tick done" style="width:19px;height:19px"><svg width="11" height="11"><use href="#i-check"/></svg></span>Download per allenarti offline</li>
+                </ul>
+              </div>
+
+              <div class="stack" style="gap:8px;padding-bottom:24px">
+                <button class="btn" data-go="home">Inizia i 7 giorni gratuiti</button>
+                <p style="text-align:center;font-size:10.5px;color:var(--app-muted);line-height:1.5">Ti avvisiamo 2 giorni prima del rinnovo.<br>Prezzi di esempio, da definire con Roberta.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- ---------- 03 HOME ---------- -->
+          <section class="view" data-view="home">
+            <div class="statusbar"><span>7:32</span><span class="sb-right"><i class="sb-bar" style="height:5px"></i><i class="sb-bar" style="height:7px"></i><i class="sb-bar" style="height:9px"></i><i class="sb-bar" style="height:11px"></i><i class="sb-batt"></i></span></div>
+            <div class="appbar">
+              <div style="margin-right:auto">
+                <span class="a-label">Lunedì 7 settembre</span>
+                <h2 class="a-h2" style="margin-top:1px">Buongiorno, Giulia</h2>
+              </div>
+              <button class="icon-btn" aria-label="Notifiche"><svg width="18" height="18"><use href="#i-bell"/></svg></button>
+              <button class="icon-btn" data-go="profile" aria-label="Profilo"><svg width="18" height="18"><use href="#i-user"/></svg></button>
+            </div>
+
+            <div class="app-scroll stack" style="gap:22px;padding-bottom:16px">
+
+              <div class="pad">
+                <div class="card hero-pine" style="padding:14px 15px;border:0">
+                  <svg class="deco" viewBox="0 0 380 120" preserveAspectRatio="none" aria-hidden="true">
+                    <g fill="none" stroke="#7FB39C" stroke-width="1" opacity=".45">
+                      <path d="M-10 96c70-46 120 16 190-22s120 10 210-30"/>
+                      <path d="M-10 114c70-46 120 16 190-22s120 10 210-30"/>
+                    </g>
+                  </svg>
+                  <div style="position:relative;display:flex;align-items:center;gap:12px">
+                    <div style="width:44px;height:44px;border-radius:14px;background:rgba(232,163,61,.9);color:#2A1B04;display:grid;place-items:center;flex:none">
+                      <svg width="22" height="22"><use href="#i-flame"/></svg>
+                    </div>
+                    <div style="flex:1;min-width:0">
+                      <div style="font-family:var(--display);font-size:20px;font-weight:600;color:#fff">12 giorni di fila</div>
+                      <div style="font-size:11.5px;color:rgba(255,255,255,.7)">3 allenamenti su 4 questa settimana · 340 min a settembre</div>
+                    </div>
+                  </div>
+                  <div class="bar amber" style="margin-top:12px;position:relative;background:rgba(255,255,255,.2)"><i style="width:75%"></i></div>
+                </div>
+              </div>
+
+              <div class="stack" style="gap:11px">
+                <div class="pad sec-head" style="margin:0">
+                  <div><span class="a-label">La lezione di oggi</span><h3 class="a-h2" style="margin-top:2px;font-size:17px">Mobility mattutina</h3></div>
+                </div>
+                <div class="pad">
+                  <button class="thumb t-mobility" data-go="class" style="width:100%;height:172px;display:block">
+                    <svg viewBox="0 0 374 172" preserveAspectRatio="none" aria-hidden="true">
+                      <g fill="none" stroke="#E4EAD8" stroke-width="1.1" opacity=".55">
+                        <path d="M-10 130c60-30 100 22 150-10s110 18 244-24"/>
+                        <path d="M-10 146c60-30 100 22 150-10s110 18 244-24"/>
+                        <path d="M-10 114c60-30 100 22 150-10s110 18 244-24"/>
+                      </g>
+                      <circle cx="300" cy="52" r="34" fill="none" stroke="#E8A33D" stroke-width="1.2" opacity=".7"/>
+                      <circle cx="300" cy="52" r="52" fill="none" stroke="#E8A33D" stroke-width="1.2" opacity=".4"/>
+                    </svg>
+                    <span style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:14px;text-align:left">
+                      <span style="display:flex;gap:6px">
+                        <span class="pill" style="background:rgba(255,255,255,.9)">Mobility</span>
+                        <span class="pill" style="background:rgba(255,255,255,.9)">Livello 1</span>
+                      </span>
+                      <span style="display:flex;align-items:flex-end;gap:12px">
+                        <span style="flex:1;color:#fff">
+                          <span style="display:block;font-family:var(--display);font-size:19px;font-weight:600;line-height:1.2">Colonna e spalle al risveglio</span>
+                          <span style="display:block;font-size:12px;color:rgba(255,255,255,.78);margin-top:3px">18 min · solo tappetino</span>
+                        </span>
+                        <span style="width:46px;height:46px;border-radius:50%;background:#E8A33D;color:#2A1B04;display:grid;place-items:center;flex:none">
+                          <svg width="20" height="20"><use href="#i-play"/></svg>
+                        </span>
+                      </span>
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="stack" style="gap:11px">
+                <div class="pad sec-head" style="margin:0"><h3 class="a-h3">Riprendi da dove eri</h3><button class="link" data-go="library">Tutte</button></div>
+                <div class="hrail">
+                  <button class="card" data-go="class" style="width:212px;flex:none;text-align:left;padding:9px">
+                    <span class="thumb t-yoga" style="display:block;width:100%;height:88px">
+                      <svg viewBox="0 0 194 88" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#DCE7EC" stroke-width="1" opacity=".5"><circle cx="150" cy="30" r="26"/><circle cx="150" cy="30" r="40"/><path d="M-5 70c40-18 70 12 110-6s60 6 100-14"/></g></svg>
+                      <span class="dur">42 min</span>
+                    </span>
+                    <span style="display:block;font-size:13px;font-weight:700;margin-top:9px;line-height:1.3">Yin Yoga serale — anche e schiena</span>
+                    <span class="bar" style="margin-top:8px"><i style="width:62%"></i></span>
+                    <span class="a-meta" style="display:block;margin-top:5px">Mancano 16 min</span>
+                  </button>
+                  <button class="card" data-go="class" style="width:212px;flex:none;text-align:left;padding:9px">
+                    <span class="thumb t-flow" style="display:block;width:100%;height:88px">
+                      <svg viewBox="0 0 194 88" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#F6E3C2" stroke-width="1" opacity=".55"><path d="M-5 62c30-40 60 10 96-18s70 22 108-8"/><path d="M-5 76c30-40 60 10 96-18s70 22 108-8"/></g></svg>
+                      <span class="dur">28 min</span>
+                    </span>
+                    <span style="display:block;font-size:13px;font-weight:700;margin-top:9px;line-height:1.3">Animal Flow — Beast base</span>
+                    <span class="bar" style="margin-top:8px"><i style="width:30%"></i></span>
+                    <span class="a-meta" style="display:block;margin-top:5px">Mancano 20 min</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="stack" style="gap:11px">
+                <div class="pad sec-head" style="margin:0"><h3 class="a-h3">Scegli in base a come stai</h3></div>
+                <div class="pad" style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px">
+                  <button class="card" data-go="library" style="padding:12px 9px;text-align:center"><span style="display:block;font-size:12.5px;font-weight:700">Pilates</span><span class="a-meta" style="font-size:10.5px">48 lezioni</span></button>
+                  <button class="card" data-go="library" style="padding:12px 9px;text-align:center"><span style="display:block;font-size:12.5px;font-weight:700">Yoga</span><span class="a-meta" style="font-size:10.5px">52 lezioni</span></button>
+                  <button class="card" data-go="library" style="padding:12px 9px;text-align:center"><span style="display:block;font-size:12.5px;font-weight:700">Animal Flow</span><span class="a-meta" style="font-size:10.5px">21 lezioni</span></button>
+                  <button class="card" data-go="library" style="padding:12px 9px;text-align:center"><span style="display:block;font-size:12.5px;font-weight:700">Mobility</span><span class="a-meta" style="font-size:10.5px">34 lezioni</span></button>
+                  <button class="card" data-go="library" style="padding:12px 9px;text-align:center"><span style="display:block;font-size:12.5px;font-weight:700">Zumba®</span><span class="a-meta" style="font-size:10.5px">26 lezioni</span></button>
+                  <button class="card" data-go="prenatal" style="padding:12px 9px;text-align:center;border-color:#EBD3CD;background:var(--app-clay-soft)"><span style="display:block;font-size:12.5px;font-weight:700;color:#8E4437">Gravidanza</span><span class="a-meta" style="font-size:10.5px;color:#A55E51">29 lezioni</span></button>
+                </div>
+              </div>
+
+              <div class="pad stack" style="gap:9px">
+                <button class="row" data-go="live" style="padding:12px">
+                  <span class="thumb t-pilates" style="width:46px;height:46px;border-radius:12px;display:grid;place-items:center;color:#fff">
+                    <svg class="ico" width="20" height="20"><use href="#i-cal"/></svg>
+                  </span>
+                  <span class="row-body">
+                    <span class="t">Prossimo live · oggi 12:30</span>
+                    <span class="a-meta">Pilates express 25 min — 42 posti liberi</span>
+                  </span>
+                  <span class="pill live">Live</span>
+                </button>
+                <button class="row" data-go="community" style="padding:12px">
+                  <span class="thumb t-zumba" style="width:46px;height:46px;border-radius:12px;display:grid;place-items:center;color:#fff">
+                    <svg class="ico" width="20" height="20"><use href="#i-users"/></svg>
+                  </span>
+                  <span class="row-body">
+                    <span class="t">#30GiorniConRoby</span>
+                    <span class="a-meta">1.284 partecipanti · sei al giorno 9</span>
+                  </span>
+                  <svg width="18" height="18" style="color:var(--app-muted)"><use href="#i-right"/></svg>
+                </button>
+              </div>
+            </div>
+            <nav class="tabbar" data-tabbar></nav>
+          </section>
+
+          <!-- ---------- 04 LIBRARY ---------- -->
+          <section class="view" data-view="library">
+            <div class="statusbar"><span>7:32</span><span class="sb-right"><i class="sb-bar" style="height:5px"></i><i class="sb-bar" style="height:7px"></i><i class="sb-bar" style="height:9px"></i><i class="sb-bar" style="height:11px"></i><i class="sb-batt"></i></span></div>
+            <div class="appbar">
+              <h2 class="a-h2">Lezioni</h2>
+              <button class="icon-btn" aria-label="Cerca"><svg width="18" height="18"><use href="#i-search"/></svg></button>
+              <button class="icon-btn" aria-label="Filtri"><svg width="18" height="18"><use href="#i-sliders"/></svg></button>
+            </div>
+            <div class="chips" style="padding-bottom:12px">
+              <button class="chip" aria-pressed="true" data-chip>Tutte</button>
+              <button class="chip" aria-pressed="false" data-chip>Pilates</button>
+              <button class="chip" aria-pressed="false" data-chip>Yoga</button>
+              <button class="chip" aria-pressed="false" data-chip>Animal Flow</button>
+              <button class="chip" aria-pressed="false" data-chip>Mobility</button>
+              <button class="chip" aria-pressed="false" data-chip>Zumba®</button>
+            </div>
+            <div class="pad" style="display:flex;gap:8px;padding-bottom:12px">
+              <button class="chip" style="flex:1;font-size:11.5px;padding:6px 8px">Durata · 20-35 min</button>
+              <button class="chip" style="flex:1;font-size:11.5px;padding:6px 8px">Livello · 1-2</button>
+              <button class="chip" style="flex:1;font-size:11.5px;padding:6px 8px">Solo tappetino</button>
+            </div>
+            <div class="app-scroll pad stack" style="gap:9px;padding-bottom:16px">
+              <p class="a-meta" style="margin-bottom:2px">64 lezioni · ordinate per novità</p>
+
+              <button class="row" data-go="class">
+                <span class="thumb t-pilates"><svg viewBox="0 0 70 62" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#D9E5DE" stroke-width=".9" opacity=".55"><circle cx="52" cy="18" r="16"/><path d="M-2 46c16-10 28 8 40-4s20 4 34-8"/></g></svg><span class="dur">32′</span></span>
+                <span class="row-body">
+                  <span class="t">Pilates Matwork — Core &amp; postura</span>
+                  <span class="a-meta">Livello 2 · tappetino, softball, elastico</span>
+                  <span style="display:flex;gap:5px;margin-top:3px"><span class="pill">Nuova</span><span class="pill sand">Core</span></span>
+                </span>
+              </button>
+
+              <button class="row" data-go="class">
+                <span class="thumb t-yoga"><svg viewBox="0 0 70 62" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#DCE7EC" stroke-width=".9" opacity=".55"><circle cx="50" cy="24" r="18"/><circle cx="50" cy="24" r="27"/></g></svg><span class="dur">45′</span></span>
+                <span class="row-body">
+                  <span class="t">Yoga Fitness — Saluto al sole potenziato</span>
+                  <span class="a-meta">Livello 2 · solo tappetino</span>
+                  <span style="display:flex;gap:5px;margin-top:3px"><span class="pill">Forza</span></span>
+                </span>
+              </button>
+
+              <button class="row" data-go="class">
+                <span class="thumb t-flow"><svg viewBox="0 0 70 62" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#F6E3C2" stroke-width=".9" opacity=".6"><path d="M-2 40c12-24 24 6 38-12s18 14 36-6"/><path d="M-2 52c12-24 24 6 38-12s18 14 36-6"/></g></svg><span class="dur">28′</span></span>
+                <span class="row-body">
+                  <span class="t">Animal Flow — Beast Flow base</span>
+                  <span class="a-meta">Livello 1 · a corpo libero</span>
+                  <span style="display:flex;gap:5px;margin-top:3px"><span class="pill sand">Mobilità</span></span>
+                </span>
+              </button>
+
+              <button class="row" data-go="class">
+                <span class="thumb t-mobility"><svg viewBox="0 0 70 62" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#E4EAD8" stroke-width=".9" opacity=".55"><path d="M-2 44c16-8 28 10 40-2s20 2 34-10"/><path d="M-2 54c16-8 28 10 40-2s20 2 34-10"/></g></svg><span class="dur">18′</span></span>
+                <span class="row-body">
+                  <span class="t">Mobility mattutina — colonna e spalle</span>
+                  <span class="a-meta">Livello 1 · solo tappetino</span>
+                  <span style="display:flex;gap:5px;margin-top:3px"><span class="pill">Oggi per te</span></span>
+                </span>
+              </button>
+
+              <button class="row" data-go="class">
+                <span class="thumb t-zumba"><svg viewBox="0 0 70 62" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#F5D9D0" stroke-width=".9" opacity=".6"><path d="M6 54V26M18 54V14M30 54V32M42 54V20M54 54V38M64 54V24"/></g></svg><span class="dur">30′</span></span>
+                <span class="row-body">
+                  <span class="t">Zumba® — Cardio party 30</span>
+                  <span class="a-meta">Livello 2 · nessun attrezzo</span>
+                  <span style="display:flex;gap:5px;margin-top:3px"><span class="pill sand">Cardio</span></span>
+                </span>
+              </button>
+
+              <button class="row" data-go="class">
+                <span class="thumb t-pilates"><svg viewBox="0 0 70 62" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#D9E5DE" stroke-width=".9" opacity=".5"><circle cx="22" cy="34" r="20"/><circle cx="52" cy="20" r="12"/></g></svg><span class="dur">22′</span></span>
+                <span class="row-body">
+                  <span class="t">Pilates express — pausa pranzo</span>
+                  <span class="a-meta">Livello 1 · tappetino</span>
+                </span>
+              </button>
+            </div>
+            <nav class="tabbar" data-tabbar></nav>
+          </section>
+
+          <!-- ---------- 05 CLASS DETAIL ---------- -->
+          <section class="view" data-view="class">
+            <div class="app-scroll stack">
+              <div class="thumb t-pilates" style="height:266px;border-radius:0;flex:none">
+                <svg viewBox="0 0 390 266" preserveAspectRatio="none" aria-hidden="true">
+                  <g fill="none" stroke="#D9E5DE" stroke-width="1.1" opacity=".45">
+                    <circle cx="300" cy="80" r="46"/><circle cx="300" cy="80" r="70"/><circle cx="300" cy="80" r="96"/>
+                    <path d="M-10 214c56-28 96 20 146-8s96 16 264-30"/>
+                    <path d="M-10 230c56-28 96 20 146-8s96 16 264-30"/>
+                  </g>
+                </svg>
+                <div class="statusbar on-dark" style="position:absolute;top:0;left:0;right:0"><span>7:32</span><span class="sb-right"><i class="sb-bar" style="height:5px"></i><i class="sb-bar" style="height:7px"></i><i class="sb-bar" style="height:9px"></i><i class="sb-bar" style="height:11px"></i><i class="sb-batt"></i></span></div>
+                <div style="position:absolute;top:52px;left:16px;right:16px;display:flex;gap:9px">
+                  <button class="icon-btn on-dark" data-go="library" aria-label="Indietro"><svg width="19" height="19"><use href="#i-left"/></svg></button>
+                  <span style="flex:1"></span>
+                  <button class="icon-btn on-dark" aria-label="Salva"><svg width="18" height="18"><use href="#i-heart"/></svg></button>
+                  <button class="icon-btn on-dark" aria-label="Condividi"><svg width="18" height="18"><use href="#i-share"/></svg></button>
+                </div>
+                <button data-play style="position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);width:66px;height:66px;border-radius:50%;background:rgba(255,255,255,.94);color:var(--app-pine);display:grid;place-items:center">
+                  <svg width="26" height="26" style="margin-left:3px"><use href="#i-play"/></svg>
+                </button>
+                <div style="position:absolute;left:16px;right:16px;bottom:14px">
+                  <div class="bar" style="background:rgba(255,255,255,.28)"><i style="width:0%;background:#E8A33D" data-playbar></i></div>
+                  <div style="display:flex;justify-content:space-between;margin-top:6px;font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.85)">
+                    <span data-playtime>0:00</span><span>32:10</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pad stack" style="gap:16px;padding-top:16px;padding-bottom:20px">
+                <div>
+                  <span class="a-label">Pilates Matwork</span>
+                  <h1 class="a-h1" style="margin-top:3px">Core &amp; postura</h1>
+                  <p class="a-meta" style="margin-top:6px">32 min · Livello 2 · con Roberta Vanzella</p>
+                </div>
+
+                <div class="stats" style="grid-template-columns:repeat(3,1fr)">
+                  <div class="stat"><b>32</b><span class="a-meta">minuti</span></div>
+                  <div class="stat"><b>210</b><span class="a-meta">kcal stimate</span></div>
+                  <div class="stat"><b>2</b><span class="a-meta">livello</span></div>
+                </div>
+
+                <div class="card stack" style="gap:9px">
+                  <span class="a-label">Occorrente</span>
+                  <div style="display:flex;flex-wrap:wrap;gap:6px">
+                    <span class="pill">Tappetino</span><span class="pill">Softball 22 cm</span><span class="pill">Elastico medio</span><span class="pill sand">Cuscino (facoltativo)</span>
+                  </div>
+                </div>
+
+                <div class="quote">
+                  “Se senti tensione al collo, appoggia la testa e riparti dal respiro. La qualità del movimento vale più del numero di ripetizioni.”
+                  <span class="who">Roberta</span>
+                </div>
+
+                <div class="stack" style="gap:2px">
+                  <span class="a-label" style="margin-bottom:6px">Capitoli</span>
+                  <button class="dayrow"><span class="tick done"><svg width="12" height="12"><use href="#i-check"/></svg></span><span style="flex:1;font-size:13.5px;font-weight:600">Respiro e attivazione</span><span class="a-meta" style="font-family:var(--mono)">0:00</span></button>
+                  <button class="dayrow"><span class="tick"><svg width="11" height="11"><use href="#i-play"/></svg></span><span style="flex:1;font-size:13.5px;font-weight:600">Mobilizzazione della colonna</span><span class="a-meta" style="font-family:var(--mono)">4:20</span></button>
+                  <button class="dayrow"><span class="tick"><svg width="11" height="11"><use href="#i-play"/></svg></span><span style="flex:1;font-size:13.5px;font-weight:600">Sequenza centrale — powerhouse</span><span class="a-meta" style="font-family:var(--mono)">9:10</span></button>
+                  <button class="dayrow"><span class="tick"><svg width="11" height="11"><use href="#i-play"/></svg></span><span style="flex:1;font-size:13.5px;font-weight:600">Serie in quadrupedia</span><span class="a-meta" style="font-family:var(--mono)">19:40</span></button>
+                  <button class="dayrow"><span class="tick"><svg width="11" height="11"><use href="#i-play"/></svg></span><span style="flex:1;font-size:13.5px;font-weight:600">Allungamento e defaticamento</span><span class="a-meta" style="font-family:var(--mono)">27:30</span></button>
+                </div>
+
+                <div style="display:flex;gap:9px">
+                  <button class="btn" data-play style="flex:2">Inizia la lezione</button>
+                  <button class="btn outline" data-go="programs" style="flex:1">Al piano</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ---------- 06 PROGRAMS ---------- -->
+          <section class="view" data-view="programs">
+            <div class="statusbar"><span>7:32</span><span class="sb-right"><i class="sb-bar" style="height:5px"></i><i class="sb-bar" style="height:7px"></i><i class="sb-bar" style="height:9px"></i><i class="sb-bar" style="height:11px"></i><i class="sb-batt"></i></span></div>
+            <div class="appbar"><h2 class="a-h2">Percorsi</h2><button class="icon-btn" aria-label="Cerca"><svg width="18" height="18"><use href="#i-search"/></svg></button></div>
+            <div class="app-scroll pad stack" style="gap:20px;padding-bottom:16px">
+
+              <div class="stack" style="gap:10px">
+                <span class="a-label">Il tuo percorso attivo</span>
+                <button class="card hero-pine" data-go="program" style="border:0;padding:16px;text-align:left;width:100%">
+                  <svg class="deco" viewBox="0 0 350 150" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#7FB39C" stroke-width="1" opacity=".4"><circle cx="288" cy="34" r="40"/><circle cx="288" cy="34" r="62"/><path d="M-10 120c60-34 100 14 160-14s110 12 210-22"/></g></svg>
+                  <span style="position:relative;display:block">
+                    <span class="pill sand" style="background:rgba(232,163,61,.92);color:#2A1B04">In corso</span>
+                    <span style="display:block;font-family:var(--display);font-size:24px;font-weight:600;color:#fff;margin-top:9px;letter-spacing:-.02em">Pilates Reset</span>
+                    <span style="display:block;font-size:12.5px;color:rgba(255,255,255,.72);margin-top:3px">21 giorni · 3 allenamenti a settimana · 25-35 min</span>
+                    <span class="bar amber" style="margin-top:14px;background:rgba(255,255,255,.2)"><i style="width:43%"></i></span>
+                    <span style="display:flex;justify-content:space-between;margin-top:7px;font-size:11.5px;color:rgba(255,255,255,.75)">
+                      <span>Giorno 9 di 21</span><span>Prossima: oggi</span>
+                    </span>
+                  </span>
+                </button>
+              </div>
+
+              <div class="stack" style="gap:11px">
+                <div class="sec-head" style="margin:0"><h3 class="a-h3">Consigliati per te</h3><span class="a-meta">12 percorsi</span></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                  <button class="card" data-go="program" style="padding:9px;text-align:left">
+                    <span class="thumb t-mobility" style="display:block;width:100%;height:86px"><svg viewBox="0 0 160 86" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#E4EAD8" stroke-width="1" opacity=".5"><path d="M-4 62c24-14 44 10 64-4s36 6 104-16"/><path d="M-4 74c24-14 44 10 64-4s36 6 104-16"/></g></svg></span>
+                    <span style="display:block;font-size:13px;font-weight:700;margin-top:9px;line-height:1.3">Spalle &amp; collo senza dolore</span>
+                    <span class="a-meta" style="display:block;margin-top:3px">14 giorni · 15 min</span>
+                  </button>
+                  <button class="card" data-go="program" style="padding:9px;text-align:left">
+                    <span class="thumb t-yoga" style="display:block;width:100%;height:86px"><svg viewBox="0 0 160 86" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#DCE7EC" stroke-width="1" opacity=".5"><circle cx="120" cy="30" r="24"/><circle cx="120" cy="30" r="38"/></g></svg></span>
+                    <span style="display:block;font-size:13px;font-weight:700;margin-top:9px;line-height:1.3">Mobilità della colonna</span>
+                    <span class="a-meta" style="display:block;margin-top:3px">4 settimane · 20 min</span>
+                  </button>
+                  <button class="card" data-go="program" style="padding:9px;text-align:left">
+                    <span class="thumb t-flow" style="display:block;width:100%;height:86px"><svg viewBox="0 0 160 86" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#F6E3C2" stroke-width="1" opacity=".55"><path d="M-4 58c22-32 44 6 70-14s36 18 98-6"/><path d="M-4 72c22-32 44 6 70-14s36 18 98-6"/></g></svg></span>
+                    <span style="display:block;font-size:13px;font-weight:700;margin-top:9px;line-height:1.3">Animal Flow dalle basi</span>
+                    <span class="a-meta" style="display:block;margin-top:3px">12 lezioni · 25 min</span>
+                  </button>
+                  <button class="card" data-go="prenatal" style="padding:9px;text-align:left">
+                    <span class="thumb t-prenatal" style="display:block;width:100%;height:86px"><svg viewBox="0 0 160 86" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#F7E4E0" stroke-width="1" opacity=".6"><circle cx="112" cy="40" r="26"/><path d="M-4 68c24-10 44 8 64-2s40 2 104-14"/></g></svg></span>
+                    <span style="display:block;font-size:13px;font-weight:700;margin-top:9px;line-height:1.3">Post-parto dolce</span>
+                    <span class="a-meta" style="display:block;margin-top:3px">6 settimane · 20 min</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="card" style="display:flex;gap:12px;align-items:center;background:var(--app-sand);border-color:#E8DCC3">
+                <span style="width:40px;height:40px;border-radius:12px;background:var(--app-marigold);color:#2A1B04;display:grid;place-items:center;flex:none"><svg width="20" height="20"><use href="#i-plus"/></svg></span>
+                <span style="flex:1">
+                  <span class="a-h3" style="display:block">Non sai da dove iniziare?</span>
+                  <span class="a-meta">Rispondi a 5 domande, Roberta ti propone il percorso.</span>
+                </span>
+              </div>
+            </div>
+            <nav class="tabbar" data-tabbar></nav>
+          </section>
+
+          <!-- ---------- 07 PROGRAM DETAIL ---------- -->
+          <section class="view" data-view="program">
+            <div class="app-scroll stack">
+              <div class="hero-pine" style="flex:none;padding-bottom:20px">
+                <svg class="deco" viewBox="0 0 390 250" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#7FB39C" stroke-width="1" opacity=".38"><circle cx="320" cy="60" r="52"/><circle cx="320" cy="60" r="80"/><path d="M-10 200c60-34 100 14 160-14s110 12 250-24"/><path d="M-10 216c60-34 100 14 160-14s110 12 250-24"/></g></svg>
+                <div class="statusbar on-dark" style="position:relative"><span>7:32</span><span class="sb-right"><i class="sb-bar" style="height:5px"></i><i class="sb-bar" style="height:7px"></i><i class="sb-bar" style="height:9px"></i><i class="sb-bar" style="height:11px"></i><i class="sb-batt"></i></span></div>
+                <div class="appbar" style="position:relative;padding-bottom:10px">
+                  <button class="icon-btn on-dark" data-go="programs" aria-label="Indietro"><svg width="19" height="19"><use href="#i-left"/></svg></button>
+                  <span style="flex:1"></span>
+                  <button class="icon-btn on-dark" aria-label="Condividi"><svg width="18" height="18"><use href="#i-share"/></svg></button>
+                </div>
+                <div class="pad" style="position:relative;color:#fff">
+                  <span class="a-label" style="color:rgba(255,255,255,.6)">Percorso guidato</span>
+                  <h1 class="a-h1" style="color:#fff;font-size:30px;margin-top:4px">Pilates Reset<br>in 21 giorni</h1>
+                  <p style="font-size:13.5px;color:rgba(255,255,255,.75);margin-top:9px;line-height:1.5">
+                    Tre allenamenti a settimana per ritrovare centro, respiro e postura. Adatto a chi riprende dopo una pausa.
+                  </p>
+                  <div style="display:flex;gap:6px;margin-top:12px">
+                    <span class="pill" style="background:rgba(255,255,255,.16);color:#fff">25-35 min</span>
+                    <span class="pill" style="background:rgba(255,255,255,.16);color:#fff">Livello 1-2</span>
+                    <span class="pill" style="background:rgba(255,255,255,.16);color:#fff">Tappetino</span>
+                  </div>
+                  <div class="bar amber" style="margin-top:16px;background:rgba(255,255,255,.2)"><i style="width:43%"></i></div>
+                  <div style="display:flex;justify-content:space-between;margin-top:7px;font-size:11.5px;color:rgba(255,255,255,.75)">
+                    <span>9 giorni completati</span><span>43%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pad stack" style="gap:16px;padding-top:18px;padding-bottom:20px">
+                <div class="card stack" style="gap:1px">
+                  <div style="display:flex;align-items:center;gap:9px;padding-bottom:8px;border-bottom:1px solid var(--app-line)">
+                    <span class="a-h3" style="flex:1">Settimana 2 · in corso</span>
+                    <span class="pill">2 su 3</span>
+                  </div>
+                  <button class="dayrow" data-go="class"><span class="tick done"><svg width="12" height="12"><use href="#i-check"/></svg></span><span style="flex:1"><b style="display:block;font-size:13.5px">Giorno 7 · Respiro e centro</b><span class="a-meta">28 min · completato lunedì</span></span></button>
+                  <button class="dayrow" data-go="class"><span class="tick done"><svg width="12" height="12"><use href="#i-check"/></svg></span><span style="flex:1"><b style="display:block;font-size:13.5px">Giorno 8 · Catena posteriore</b><span class="a-meta">32 min · completato mercoledì</span></span></button>
+                  <button class="dayrow" data-go="class" style="background:var(--app-sand);margin:0 -14px;padding:10px 14px;border-radius:12px">
+                    <span class="tick today"><svg width="11" height="11"><use href="#i-play"/></svg></span>
+                    <span style="flex:1"><b style="display:block;font-size:13.5px">Giorno 9 · Core &amp; postura</b><span class="a-meta">32 min · da fare oggi</span></span>
+                    <svg width="17" height="17" style="color:var(--app-marigold-ink)"><use href="#i-right"/></svg>
+                  </button>
+                </div>
+
+                <div class="card stack" style="gap:1px">
+                  <div style="display:flex;align-items:center;gap:9px;padding-bottom:8px;border-bottom:1px solid var(--app-line)">
+                    <span class="a-h3" style="flex:1">Settimana 3</span>
+                    <span class="a-meta">si sblocca lunedì</span>
+                  </div>
+                  <div class="dayrow" style="opacity:.55"><span class="tick"></span><span style="flex:1"><b style="display:block;font-size:13.5px">Giorno 10 · Recupero attivo</b><span class="a-meta">18 min</span></span></div>
+                  <div class="dayrow" style="opacity:.55"><span class="tick"></span><span style="flex:1"><b style="display:block;font-size:13.5px">Giorno 11 · Forza dolce</b><span class="a-meta">30 min</span></span></div>
+                  <div class="dayrow" style="opacity:.55"><span class="tick"></span><span style="flex:1"><b style="display:block;font-size:13.5px">Giorno 12 · Flow completo</b><span class="a-meta">35 min</span></span></div>
+                </div>
+
+                <button class="btn" data-go="class">Allenati adesso · Giorno 9</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- ---------- 08 COMMUNITY ---------- -->
+          <section class="view" data-view="community">
+            <div class="statusbar"><span>7:32</span><span class="sb-right"><i class="sb-bar" style="height:5px"></i><i class="sb-bar" style="height:7px"></i><i class="sb-bar" style="height:9px"></i><i class="sb-bar" style="height:11px"></i><i class="sb-batt"></i></span></div>
+            <div class="appbar">
+              <button class="icon-btn ghost" data-go="home" aria-label="Indietro"><svg width="20" height="20"><use href="#i-left"/></svg></button>
+              <h2 class="a-h2">Community</h2>
+              <button class="icon-btn" aria-label="Notifiche"><svg width="18" height="18"><use href="#i-bell"/></svg></button>
+            </div>
+            <div class="app-scroll pad stack" style="gap:16px;padding-bottom:16px">
+
+              <div class="card hero-pine" style="border:0;padding:16px">
+                <svg class="deco" viewBox="0 0 350 140" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#E8A33D" stroke-width="1" opacity=".4"><circle cx="292" cy="30" r="34"/><circle cx="292" cy="30" r="54"/></g></svg>
+                <div style="position:relative;color:#fff">
+                  <span class="a-label" style="color:rgba(255,255,255,.6)">Sfida del mese</span>
+                  <div style="font-family:var(--display);font-size:24px;font-weight:600;margin-top:4px">#30GiorniConRoby</div>
+                  <div style="font-size:12.5px;color:rgba(255,255,255,.72);margin-top:4px">1.284 partecipanti · muoviti almeno 15 min al giorno</div>
+                  <div class="bar amber" style="margin-top:13px;background:rgba(255,255,255,.2)"><i style="width:30%"></i></div>
+                  <div style="display:flex;justify-content:space-between;margin-top:7px;font-size:11.5px;color:rgba(255,255,255,.75)"><span>Giorno 9 di 30</span><span>Sei nel primo 20%</span></div>
+                </div>
+              </div>
+
+              <button class="row" style="padding:12px;border-color:#E8DCC3;background:var(--app-sand)">
+                <span style="width:44px;height:44px;border-radius:13px;background:var(--app-marigold);color:#2A1B04;display:grid;place-items:center;flex:none"><svg width="20" height="20"><use href="#i-users"/></svg></span>
+                <span class="row-body"><span class="t">Q&amp;A con Roberta</span><span class="a-meta">Giovedì 21:00 · manda la tua domanda</span></span>
+                <span class="btn sm amber">Iscriviti</span>
+              </button>
+
+              <div class="stack" style="gap:10px">
+                <div class="sec-head" style="margin:0"><h3 class="a-h3">Bacheca</h3><span class="a-meta">Oggi</span></div>
+
+                <div class="card stack" style="gap:9px">
+                  <div style="display:flex;align-items:center;gap:9px">
+                    <span style="width:34px;height:34px;border-radius:50%;background:var(--app-mint);color:var(--app-pine);display:grid;place-items:center;font-size:12px;font-weight:800">MC</span>
+                    <span style="flex:1"><b style="display:block;font-size:13px">Martina C.</b><span class="a-meta">2 ore fa · Padova</span></span>
+                    <span class="pill">Giorno 21</span>
+                  </div>
+                  <p style="font-size:13.5px;line-height:1.5">Ho finito <b>Pilates Reset</b>. Tre settimane fa non riuscivo a stare seduta al lavoro senza dolore lombare. Grazie Roberta 🌿</p>
+                  <div style="display:flex;gap:14px;padding-top:2px">
+                    <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--app-muted)"><svg width="15" height="15"><use href="#i-heart"/></svg>84</span>
+                    <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--app-muted)"><svg width="15" height="15"><use href="#i-users"/></svg>12 risposte</span>
+                  </div>
+                </div>
+
+                <div class="card stack" style="gap:9px">
+                  <div style="display:flex;align-items:center;gap:9px">
+                    <span style="width:34px;height:34px;border-radius:50%;background:var(--app-clay-soft);color:#8E4437;display:grid;place-items:center;font-size:12px;font-weight:800">SB</span>
+                    <span style="flex:1"><b style="display:block;font-size:13px">Sara B.</b><span class="a-meta">5 ore fa · Vicenza</span></span>
+                    <span class="pill clay">Gravidanza</span>
+                  </div>
+                  <p style="font-size:13.5px;line-height:1.5">Settimana 24 e la sequenza per il bacino è diventata il mio rito della sera. Qualcuna viene al workshop del 26?</p>
+                  <div style="display:flex;gap:14px;padding-top:2px">
+                    <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--app-muted)"><svg width="15" height="15"><use href="#i-heart"/></svg>41</span>
+                    <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--app-muted)"><svg width="15" height="15"><use href="#i-users"/></svg>7 risposte</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <nav class="tabbar" data-tabbar></nav>
+          </section>
+
+          <!-- ---------- 09 LIVE & STUDIO ---------- -->
+          <section class="view" data-view="live">
+            <div class="statusbar"><span>7:32</span><span class="sb-right"><i class="sb-bar" style="height:5px"></i><i class="sb-bar" style="height:7px"></i><i class="sb-bar" style="height:9px"></i><i class="sb-bar" style="height:11px"></i><i class="sb-batt"></i></span></div>
+            <div class="appbar"><h2 class="a-h2">Calendario</h2><button class="icon-btn" aria-label="Filtri"><svg width="18" height="18"><use href="#i-sliders"/></svg></button></div>
+            <div class="pad" style="padding-bottom:14px">
+              <div class="seg">
+                <button aria-pressed="true" data-seg>Tutto</button>
+                <button aria-pressed="false" data-seg>Live online</button>
+                <button aria-pressed="false" data-seg>In studio</button>
+              </div>
+            </div>
+            <div class="pad" style="padding-bottom:14px">
+              <div class="week">
+                <button class="day" aria-pressed="true" data-day><span>Lun</span><b>7</b></button>
+                <button class="day" aria-pressed="false" data-day><span>Mar</span><b>8</b></button>
+                <button class="day" aria-pressed="false" data-day><span>Mer</span><b>9</b></button>
+                <button class="day" aria-pressed="false" data-day><span>Gio</span><b>10</b></button>
+                <button class="day" aria-pressed="false" data-day><span>Ven</span><b>11</b></button>
+                <button class="day" aria-pressed="false" data-day><span>Sab</span><b>12</b></button>
+                <button class="day" aria-pressed="false" data-day><span>Dom</span><b>13</b></button>
+              </div>
+            </div>
+            <div class="app-scroll pad stack" style="gap:14px;padding-bottom:16px">
+
+              <div class="card stack" style="gap:0;padding:4px 14px">
+                <div class="slot">
+                  <span class="time">07:30</span>
+                  <span style="flex:1;min-width:0">
+                    <b style="display:block;font-size:13.5px">Mobility del mattino</b>
+                    <span class="a-meta">30 min · Livello 1 · replay per 7 giorni</span>
+                    <span style="display:flex;gap:5px;margin-top:5px"><span class="pill live">Live</span><span class="pill">Terminata</span></span>
+                  </span>
+                </div>
+                <div class="slot">
+                  <span class="time">12:30</span>
+                  <span style="flex:1;min-width:0">
+                    <b style="display:block;font-size:13.5px">Pilates express</b>
+                    <span class="a-meta">25 min · Livello 1-2 · 42 posti liberi</span>
+                    <span style="display:flex;gap:5px;margin-top:5px"><span class="pill live">Live</span></span>
+                  </span>
+                  <button class="btn sm" data-go="booking">Prenota</button>
+                </div>
+                <div class="slot">
+                  <span class="time">18:45</span>
+                  <span style="flex:1;min-width:0">
+                    <b style="display:block;font-size:13.5px">Yoga Fitness</b>
+                    <span class="a-meta" style="display:flex;align-items:center;gap:4px"><svg width="13" height="13"><use href="#i-pin"/></svg>In studio · Vicenza · 12 posti</span>
+                    <span style="display:flex;gap:5px;margin-top:5px"><span class="pill sand">In presenza</span></span>
+                  </span>
+                  <button class="btn sm" data-go="booking">Prenota</button>
+                </div>
+                <div class="slot">
+                  <span class="time">20:00</span>
+                  <span style="flex:1;min-width:0">
+                    <b style="display:block;font-size:13.5px">Zumba® Party</b>
+                    <span class="a-meta" style="display:flex;align-items:center;gap:4px"><svg width="13" height="13"><use href="#i-pin"/></svg>In studio · Vicenza · esaurita</span>
+                    <span style="display:flex;gap:5px;margin-top:5px"><span class="pill sand">In presenza</span></span>
+                  </span>
+                  <button class="btn sm outline">Lista d'attesa</button>
+                </div>
+              </div>
+
+              <button class="card" data-go="booking" style="display:flex;gap:12px;align-items:center;text-align:left;background:var(--app-sand);border-color:#E8DCC3;width:100%">
+                <span class="thumb t-yoga" style="width:52px;height:52px;border-radius:14px"><svg viewBox="0 0 52 52" aria-hidden="true"><g fill="none" stroke="#DCE7EC" stroke-width=".9" opacity=".6"><circle cx="26" cy="26" r="13"/><circle cx="26" cy="26" r="20"/></g></svg></span>
+                <span style="flex:1">
+                  <span class="a-label" style="color:var(--app-marigold-ink)">Evento speciale</span>
+                  <span class="a-h3" style="display:block;margin-top:2px">Workshop Yin &amp; Respiro</span>
+                  <span class="a-meta">Sabato 26 settembre · 15:00-18:00 · Vicenza · 45 €</span>
+                </span>
+                <svg width="18" height="18" style="color:var(--app-marigold-ink);flex:none"><use href="#i-right"/></svg>
+              </button>
+            </div>
+            <nav class="tabbar" data-tabbar></nav>
+          </section>
+
+          <!-- ---------- 10 BOOKING CONFIRMED ---------- -->
+          <section class="view" data-view="booking">
+            <div class="statusbar"><span>7:32</span><span class="sb-right"><i class="sb-bar" style="height:5px"></i><i class="sb-bar" style="height:7px"></i><i class="sb-bar" style="height:9px"></i><i class="sb-bar" style="height:11px"></i><i class="sb-batt"></i></span></div>
+            <div class="appbar">
+              <button class="icon-btn ghost" data-go="live" aria-label="Chiudi"><svg width="20" height="20"><use href="#i-left"/></svg></button>
+            </div>
+            <div class="app-scroll pad stack" style="gap:18px;padding-bottom:20px">
+              <div style="text-align:center;padding-top:12px">
+                <div class="burst"><svg width="34" height="34"><use href="#i-check"/></svg></div>
+                <h1 class="a-h1" style="margin-top:22px">Posto confermato</h1>
+                <p class="a-meta" style="margin-top:7px">Ti abbiamo inviato la conferma via email.</p>
+              </div>
+
+              <div class="card stack" style="gap:12px">
+                <div style="display:flex;gap:12px;align-items:center">
+                  <span class="thumb t-yoga" style="width:52px;height:52px;border-radius:14px"><svg viewBox="0 0 52 52" aria-hidden="true"><g fill="none" stroke="#DCE7EC" stroke-width=".9" opacity=".6"><circle cx="26" cy="26" r="13"/><circle cx="26" cy="26" r="20"/></g></svg></span>
+                  <span style="flex:1"><b style="display:block;font-size:14.5px">Yoga Fitness</b><span class="a-meta">con Roberta Vanzella · 60 min</span></span>
+                </div>
+                <div style="border-top:1px solid var(--app-line);padding-top:11px;display:grid;grid-template-columns:1fr 1fr;gap:11px">
+                  <div><span class="a-label">Quando</span><b style="display:block;font-size:13.5px;margin-top:2px">Lun 7 set · 18:45</b></div>
+                  <div><span class="a-label">Dove</span><b style="display:block;font-size:13.5px;margin-top:2px">In studio · Vicenza</b></div>
+                  <div><span class="a-label">Posto</span><b style="display:block;font-size:13.5px;margin-top:2px">Tappetino 6</b></div>
+                  <div><span class="a-label">Incluso</span><b style="display:block;font-size:13.5px;margin-top:2px">Abbonamento Studio</b></div>
+                </div>
+              </div>
+
+              <div class="card stack" style="gap:2px">
+                <button class="list-item"><svg width="19" height="19" style="color:var(--app-pine-2)"><use href="#i-cal"/></svg>Aggiungi al calendario</button>
+                <button class="list-item"><svg width="19" height="19" style="color:var(--app-pine-2)"><use href="#i-pin"/></svg>Indicazioni per lo studio</button>
+                <div class="list-item"><svg width="19" height="19" style="color:var(--app-pine-2)"><use href="#i-bell"/></svg>Promemoria 1 ora prima<span class="switch" role="button" aria-pressed="true" data-switch></span></div>
+              </div>
+
+              <div class="quote">
+                “Porta i calzini antiscivolo e arriva 5 minuti prima: iniziamo dal respiro, in silenzio.”
+                <span class="who">Roberta</span>
+              </div>
+
+              <div class="stack" style="gap:9px">
+                <button class="btn" data-go="live">Torna al calendario</button>
+                <button style="font-size:13px;font-weight:600;color:var(--app-muted);padding:4px">Annulla prenotazione</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- ---------- 11 PREGNANCY ---------- -->
+          <section class="view" data-view="prenatal" style="background:#FBF6F4">
+            <div class="statusbar"><span>7:32</span><span class="sb-right"><i class="sb-bar" style="height:5px"></i><i class="sb-bar" style="height:7px"></i><i class="sb-bar" style="height:9px"></i><i class="sb-bar" style="height:11px"></i><i class="sb-batt"></i></span></div>
+            <div class="appbar">
+              <button class="icon-btn ghost" data-go="home" aria-label="Indietro"><svg width="20" height="20"><use href="#i-left"/></svg></button>
+              <h2 class="a-h2">Gravidanza</h2>
+            </div>
+            <div class="app-scroll pad stack" style="gap:16px;padding-bottom:16px">
+              <div>
+                <h1 class="a-h1">Muoversi bene,<br>trimestre per trimestre.</h1>
+                <p class="a-meta" style="margin-top:7px">Sequenze di Roberta, istruttrice certificata in fitness posturale e yoga prenatale.</p>
+              </div>
+
+              <div class="seg" style="background:#EFDFDB">
+                <button aria-pressed="false" data-seg>1° tri</button>
+                <button aria-pressed="true" data-seg>2° tri</button>
+                <button aria-pressed="false" data-seg>3° tri</button>
+                <button aria-pressed="false" data-seg>Post-parto</button>
+              </div>
+
+              <div class="card" style="background:var(--app-clay-soft);border-color:#EBD3CD;display:flex;gap:11px;align-items:flex-start">
+                <span style="width:30px;height:30px;border-radius:9px;background:var(--app-clay);color:#fff;display:grid;place-items:center;flex:none;font-weight:800;font-size:14px">!</span>
+                <span style="font-size:12.5px;line-height:1.5;color:#7A4038">
+                  Chiedi sempre il parere del tuo medico o dell'ostetrica prima di iniziare, e interrompi se senti dolore, capogiri o contrazioni.
+                </span>
+              </div>
+
+              <div class="card" style="display:flex;gap:12px;align-items:center">
+                <span style="flex:1"><span class="a-label">La tua settimana</span><b style="display:block;font-family:var(--display);font-size:22px;font-weight:600;margin-top:1px">Settimana 22</b></span>
+                <span class="pill clay">Secondo trimestre</span>
+              </div>
+
+              <div class="stack" style="gap:9px">
+                <div class="sec-head" style="margin:0"><h3 class="a-h3">Consigliato questa settimana</h3><span class="a-meta">4 lezioni</span></div>
+
+                <button class="row" data-go="class">
+                  <span class="thumb t-prenatal"><svg viewBox="0 0 70 62" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#F7E4E0" stroke-width=".9" opacity=".65"><circle cx="46" cy="26" r="16"/><path d="M-2 48c16-8 28 8 40-2s18 2 34-8"/></g></svg><span class="dur">15′</span></span>
+                  <span class="row-body"><span class="t">Respiro e diaframma</span><span class="a-meta">Seduta · cuscino</span></span>
+                </button>
+                <button class="row" data-go="class">
+                  <span class="thumb t-prenatal"><svg viewBox="0 0 70 62" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#F7E4E0" stroke-width=".9" opacity=".65"><circle cx="34" cy="30" r="20"/><circle cx="34" cy="30" r="28"/></g></svg><span class="dur">20′</span></span>
+                  <span class="row-body"><span class="t">Bacino mobile e scarico lombare</span><span class="a-meta">Fitball · livello 1</span></span>
+                </button>
+                <button class="row" data-go="class">
+                  <span class="thumb t-prenatal"><svg viewBox="0 0 70 62" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#F7E4E0" stroke-width=".9" opacity=".6"><path d="M8 50V22M22 50V14M36 50V30M50 50V18M62 50V34"/></g></svg><span class="dur">25′</span></span>
+                  <span class="row-body"><span class="t">Forza dolce con elastico</span><span class="a-meta">Elastico leggero · in piedi</span></span>
+                </button>
+                <button class="row" data-go="class">
+                  <span class="thumb t-prenatal"><svg viewBox="0 0 70 62" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#F7E4E0" stroke-width=".9" opacity=".6"><path d="M-2 40c16-6 28 8 40 0s18-2 34-10"/><path d="M-2 52c16-6 28 8 40 0s18-2 34-10"/></g></svg><span class="dur">12′</span></span>
+                  <span class="row-body"><span class="t">Rilassamento serale</span><span class="a-meta">A letto · nessun attrezzo</span></span>
+                </button>
+              </div>
+
+              <button class="card" data-go="live" style="display:flex;gap:12px;align-items:center;text-align:left;width:100%">
+                <span style="width:44px;height:44px;border-radius:13px;background:var(--app-clay);color:#fff;display:grid;place-items:center;flex:none"><svg width="20" height="20"><use href="#i-users"/></svg></span>
+                <span style="flex:1"><b style="display:block;font-size:13.5px">Gruppo mamme · in studio</b><span class="a-meta">Mercoledì 10:30 · Vicenza · 8 posti</span></span>
+                <svg width="18" height="18" style="color:var(--app-muted)"><use href="#i-right"/></svg>
+              </button>
+            </div>
+            <nav class="tabbar" data-tabbar></nav>
+          </section>
+
+          <!-- ---------- 12 PROFILE ---------- -->
+          <section class="view" data-view="profile">
+            <div class="statusbar"><span>7:32</span><span class="sb-right"><i class="sb-bar" style="height:5px"></i><i class="sb-bar" style="height:7px"></i><i class="sb-bar" style="height:9px"></i><i class="sb-bar" style="height:11px"></i><i class="sb-batt"></i></span></div>
+            <div class="appbar"><h2 class="a-h2">Profilo</h2><button class="icon-btn" aria-label="Notifiche"><svg width="18" height="18"><use href="#i-bell"/></svg></button></div>
+            <div class="app-scroll pad stack" style="gap:16px;padding-bottom:16px">
+
+              <div style="display:flex;gap:13px;align-items:center">
+                <span style="width:58px;height:58px;border-radius:20px;background:var(--app-pine);color:#fff;display:grid;place-items:center;font-family:var(--display);font-size:21px;font-weight:600;flex:none">GB</span>
+                <span style="flex:1">
+                  <b style="display:block;font-family:var(--display);font-size:21px;font-weight:600;letter-spacing:-.02em">Giulia Bertolin</b>
+                  <span class="a-meta">Iscritta da marzo 2026 · piano annuale</span>
+                </span>
+              </div>
+
+              <div class="stats">
+                <div class="stat"><b>148</b><span class="a-meta">lezioni completate</span></div>
+                <div class="stat"><b>3.240</b><span class="a-meta">minuti totali</span></div>
+                <div class="stat"><b>12</b><span class="a-meta">giorni di fila</span></div>
+                <div class="stat"><b>4</b><span class="a-meta">percorsi finiti</span></div>
+              </div>
+
+              <div class="card stack" style="gap:10px">
+                <div class="sec-head" style="margin:0"><span class="a-label">Minuti per settimana</span><span class="a-meta">ultime 6 settimane</span></div>
+                <svg viewBox="0 0 330 128" style="width:100%;height:auto" role="img" aria-label="Minuti di allenamento per settimana: 210, 265, 180, 320, 290, 340">
+                  <g stroke="#E5E3DA" stroke-width="1">
+                    <line x1="34" y1="12" x2="326" y2="12"/><line x1="34" y1="53" x2="326" y2="53"/><line x1="34" y1="94" x2="326" y2="94"/>
+                  </g>
+                  <g fill="#6B7770" font-family="IBM Plex Mono, monospace" font-size="9" text-anchor="end">
+                    <text x="28" y="15">360</text><text x="28" y="56">180</text><text x="28" y="97">0</text>
+                  </g>
+                  <g fill="#376553">
+                    <rect x="44"  y="46.2" width="34" height="47.8" rx="4"/>
+                    <rect x="92"  y="33.6" width="34" height="60.4" rx="4"/>
+                    <rect x="140" y="53"   width="34" height="41"   rx="4"/>
+                    <rect x="188" y="21.1" width="34" height="72.9" rx="4"/>
+                    <rect x="236" y="27.9" width="34" height="66.1" rx="4"/>
+                  </g>
+                  <rect x="284" y="16.6" width="34" height="77.4" rx="4" fill="#E8A33D"/>
+                  <g fill="#6B7770" font-family="IBM Plex Mono, monospace" font-size="9" text-anchor="middle">
+                    <text x="61"  y="108">4 ago</text><text x="109" y="108">11</text><text x="157" y="108">18</text>
+                    <text x="205" y="108">25</text><text x="253" y="108">1 set</text>
+                  </g>
+                  <text x="301" y="108" fill="#8C5B0A" font-family="IBM Plex Mono, monospace" font-size="9" text-anchor="middle" font-weight="500">questa</text>
+                  <text x="301" y="121" fill="#8C5B0A" font-family="IBM Plex Mono, monospace" font-size="9" text-anchor="middle" font-weight="500">340 min</text>
+                </svg>
+              </div>
+
+              <div class="stack" style="gap:9px">
+                <span class="a-label">Traguardi</span>
+                <div style="display:flex;gap:8px">
+                  <div class="card" style="flex:1;text-align:center;padding:11px 6px"><div style="font-family:var(--display);font-size:18px;font-weight:600">100</div><div class="a-meta" style="font-size:10px">lezioni</div></div>
+                  <div class="card" style="flex:1;text-align:center;padding:11px 6px"><div style="font-family:var(--display);font-size:18px;font-weight:600">30</div><div class="a-meta" style="font-size:10px">giorni di fila</div></div>
+                  <div class="card" style="flex:1;text-align:center;padding:11px 6px;background:var(--app-sand);border-color:#E8DCC3"><div style="font-family:var(--display);font-size:18px;font-weight:600;color:var(--app-marigold-ink)">1°</div><div class="a-meta" style="font-size:10px;color:var(--app-marigold-ink)">workshop</div></div>
+                  <div class="card" style="flex:1;text-align:center;padding:11px 6px;opacity:.5"><div style="font-family:var(--display);font-size:18px;font-weight:600">5</div><div class="a-meta" style="font-size:10px">percorsi</div></div>
+                </div>
+              </div>
+
+              <div class="card stack" style="gap:2px">
+                <button class="list-item" data-go="plans">Abbonamento<span class="v">Annuale · rinnovo 12 mar</span><svg width="17" height="17" style="color:var(--app-muted)"><use href="#i-right"/></svg></button>
+                <button class="list-item" data-go="community">Community<span class="v">3 nuove risposte</span><svg width="17" height="17" style="color:var(--app-muted)"><use href="#i-right"/></svg></button>
+                <button class="list-item">Promemoria<span class="v">Lun, Mer, Ven · 7:15</span><svg width="17" height="17" style="color:var(--app-muted)"><use href="#i-right"/></svg></button>
+                <button class="list-item">Download offline<span class="v">6 lezioni</span><svg width="17" height="17" style="color:var(--app-muted)"><use href="#i-right"/></svg></button>
+                <button class="list-item">Lingua<span class="v">Italiano</span><svg width="17" height="17" style="color:var(--app-muted)"><use href="#i-right"/></svg></button>
+              </div>
+            </div>
+            <nav class="tabbar" data-tabbar></nav>
+          </section>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="stage-hint">
+      <span class="dot"></span>
+      Everything on the phone is clickable — tab bar, cards, back arrows, filters. Arrow keys move between screens.
+    </div>
+  </main>
+
+  <!-- ============ PRESENTER NOTES ============ -->
+  <aside class="notes">
+    <span class="eyebrow" id="n-group">Daily loop</span>
+    <h2 id="n-title">Today</h2>
+    <p id="n-lede" style="font-size:13.5px;color:var(--muted);line-height:1.5"></p>
+    <ul class="n-list" id="n-list"></ul>
+    <div class="n-why">
+      <span class="eyebrow">Why it matters for Roberta</span>
+      <p id="n-why"></p>
+    </div>
+    <div class="n-nav">
+      <button id="prev"><svg width="15" height="15"><use href="#i-left"/></svg>Previous</button>
+      <button id="next">Next<svg width="15" height="15"><use href="#i-right"/></svg></button>
+    </div>
+    <p class="n-foot">
+      Prototype, not a live product. Class titles, schedules, prices and member names are placeholders written in Roberta's voice — they exist to make the flow readable, and every one of them is hers to change.
+    </p>
+  </aside>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- screen order + presenter notes ---------- */
+  var ORDER = ["welcome","plans","home","library","class","programs","program","community","live","booking","prenatal","profile"];
+
+  var NOTES = {
+    welcome:{
+      group:"First run", title:"Welcome",
+      lede:"The first ten seconds. It sells the promise, not the feature list.",
+      list:[
+        "Headline leads with the objection her audience actually has — no time — and answers it: 15 minutes counts.",
+        "Three numbers do the credibility work: 200+ classes, 6 live sessions a week, 12 guided programs.",
+        "Both doors are open — free trial for new members, sign-in for the people already following her."
+      ],
+      why:"Roberta already has the audience. This screen is the bridge between a follower who watches and a member who pays."
+    },
+    plans:{
+      group:"First run", title:"Membership",
+      lede:"Three tiers, with the annual plan pre-selected and social proof on it.",
+      list:[
+        "Annual is anchored between monthly and Studio+App, so it reads as the sensible middle.",
+        "Studio + App bundles four in-person classes in Vicenza — the tier only she can offer.",
+        "Renewal warning stated up front, which measurably reduces chargebacks and one-star reviews."
+      ],
+      why:"Recurring revenue that doesn't depend on filling a room, plus a tier that fills the room anyway."
+    },
+    home:{
+      group:"Daily loop", title:"Today",
+      lede:"One screen that answers 'what do I do right now'. Opens on a single decision.",
+      list:[
+        "Streak card at the top: 12 days running, 3 of 4 workouts this week. Progress before content.",
+        "One class of the day, chosen for her — no scrolling required to start moving.",
+        "'Resume where you left off' recovers the classes people abandon halfway.",
+        "Disciplines are framed as 'pick by how you feel', which is how her members actually choose."
+      ],
+      why:"Retention lives or dies here. A member who opens this screen and starts within 5 seconds renews."
+    },
+    library:{
+      group:"Daily loop", title:"Class library",
+      lede:"The full catalogue, filtered the way a real person searches.",
+      list:[
+        "Filters by discipline, then by duration, level and equipment — 'only a mat' is its own filter.",
+        "Every card states time, level and kit before you tap, so nothing is a surprise.",
+        "'New' and 'Today for you' badges keep the weekly upload visible without an announcement."
+      ],
+      why:"Her range — Pilates, yoga, Animal Flow, mobility, Zumba® — is the differentiator. This is where it stops being overwhelming."
+    },
+    "class":{
+      group:"Daily loop", title:"Class detail",
+      lede:"The class page, with the player, the kit list and a note in her voice.",
+      list:[
+        "Tap play — the progress bar runs, so you can demo the player live.",
+        "Chapters are tappable: skip to the central sequence, or back to the breathing.",
+        "The kit list prevents the most common drop-off: starting a class without the ball or band.",
+        "A short cue from Roberta is what makes this feel like her app and not a video library."
+      ],
+      why:"Her teaching voice is the product. Written cues carry it into every class, not just the live ones."
+    },
+    programs:{
+      group:"Retention", title:"Programs",
+      lede:"Multi-week paths, because single classes don't build a habit.",
+      list:[
+        "The active program sits above everything else with day 9 of 21 showing.",
+        "Four suggested paths, each with a real outcome: shoulders and neck, spine mobility, Animal Flow basics, gentle postpartum.",
+        "A five-question intake for members who don't know where to start."
+      ],
+      why:"A member on a 21-day program has a reason to come back tomorrow. That's the single biggest lever on churn."
+    },
+    program:{
+      group:"Retention", title:"Program detail",
+      lede:"Week by week, with today's session marked and next week locked.",
+      list:[
+        "Completed days show the weekday they were done — the record of effort is the motivation.",
+        "Today's session is highlighted in amber and is one tap from starting.",
+        "Week 3 stays locked until Monday, which paces the program instead of letting people binge and quit."
+      ],
+      why:"Structure is what people pay a teacher for. This is Roberta's method, delivered without her having to be present."
+    },
+    community:{
+      group:"Retention", title:"Community",
+      lede:"The monthly challenge and the members' board.",
+      list:[
+        "#30GiorniConRoby with 1,284 participants, and the member's own position in it.",
+        "Real posts from members in Padova and Vicenza — results, not selfies.",
+        "A weekly Q&A slot with Roberta, which is the moment members plan their week around."
+      ],
+      why:"Her Instagram community is her biggest asset. Right now it lives on rented land — this moves it somewhere she owns."
+    },
+    live:{
+      group:"Revenue", title:"Live & studio",
+      lede:"One calendar for online live classes and in-person sessions in Vicenza.",
+      list:[
+        "Segmented control filters live-only or studio-only; the week strip sets the day.",
+        "Live classes show remaining spots and a 7-day replay; studio classes show location and mat count.",
+        "A sold-out class offers a waiting list instead of a dead end.",
+        "The Yin & Breath workshop is a paid event sold inside the app — no third-party booking page."
+      ],
+      why:"Studio classes and workshops are her highest-margin work. Selling them where her members already are removes the booking friction entirely."
+    },
+    booking:{
+      group:"Revenue", title:"Booking confirmed",
+      lede:"The confirmation, including the details people actually screenshot.",
+      list:[
+        "Date, place, mat number and which plan covered it — all on one card.",
+        "Add to calendar and directions to the studio, plus a reminder toggle one hour before.",
+        "A practical note from Roberta: non-slip socks, arrive five minutes early."
+      ],
+      why:"Confirmed bookings with a reminder cut no-shows sharply. Every empty mat in a 12-place studio is lost income."
+    },
+    prenatal:{
+      group:"Revenue", title:"Pregnancy track",
+      lede:"A dedicated space for pregnancy and postpartum, in its own softer palette.",
+      list:[
+        "Trimester selector, plus the member's current week — content follows her, not a generic plan.",
+        "Medical disclaimer sits above the classes, never buried.",
+        "Sessions named by what they solve: breathing, pelvic mobility, gentle strength, evening wind-down.",
+        "Links through to the in-person mothers' group in Vicenza."
+      ],
+      why:"This is her certified specialism and the hardest thing for a generic fitness app to copy. It deserves its own front door — and it's a track members stay in for a year."
+    },
+    profile:{
+      group:"Revenue", title:"Profile",
+      lede:"Progress, achievements and the account settings.",
+      list:[
+        "148 classes and 3,240 minutes — the numbers that make cancelling feel like a loss.",
+        "Six weeks of training minutes, with this week highlighted at 340.",
+        "Achievements include a workshop badge, which pulls people from online-only to in-person.",
+        "Subscription, reminders, downloads and language all one tap away."
+      ],
+      why:"Visible progress is the cheapest retention mechanic there is, and the renewal date sits where members can find it without emailing her."
+    }
+  };
+
+  /* ---------- tab bar ---------- */
+  var TABS = [
+    {id:"home",     label:"Oggi",       icon:"i-home",  match:["home"]},
+    {id:"library",  label:"Lezioni",    icon:"i-grid",  match:["library","class"]},
+    {id:"programs", label:"Percorsi",   icon:"i-route", match:["programs","program"]},
+    {id:"live",     label:"Calendario", icon:"i-cal",   match:["live","booking"]},
+    {id:"profile",  label:"Profilo",    icon:"i-user",  match:["profile","community","prenatal","plans"]}
+  ];
+
+  document.querySelectorAll("[data-tabbar]").forEach(function(bar){
+    bar.innerHTML = TABS.map(function(t){
+      return '<button class="tab" data-go="' + t.id + '" data-tab="' + t.id + '">' +
+             '<svg><use href="#' + t.icon + '"/></svg>' + t.label + '</button>';
+    }).join("");
+  });
+
+  /* ---------- navigation ---------- */
+  var views = {}, railItems = {};
+  document.querySelectorAll("[data-view]").forEach(function(v){ views[v.dataset.view] = v; });
+  document.querySelectorAll(".rail-item").forEach(function(b){ railItems[b.dataset.go] = b; });
+
+  var current = null;
+
+  function go(id){
+    if(!views[id] || id === current) return;
+    current = id;
+
+    Object.keys(views).forEach(function(k){ views[k].classList.toggle("active", k === id); });
+    Object.keys(railItems).forEach(function(k){ railItems[k].setAttribute("aria-current", k === id ? "true" : "false"); });
+
+    var scroller = views[id].querySelector(".app-scroll");
+    if(scroller) scroller.scrollTop = 0;
+
+    var tabId = (TABS.filter(function(t){ return t.match.indexOf(id) > -1; })[0] || {}).id;
+    document.querySelectorAll("[data-tab]").forEach(function(t){
+      t.setAttribute("aria-current", t.dataset.tab === tabId ? "true" : "false");
+    });
+
+    var n = NOTES[id];
+    document.getElementById("n-group").textContent = n.group;
+    document.getElementById("n-title").textContent = n.title;
+    document.getElementById("n-lede").textContent  = n.lede;
+    document.getElementById("n-list").innerHTML    = n.list.map(function(x){ return "<li>" + x + "</li>"; }).join("");
+    document.getElementById("n-why").textContent   = n.why;
+
+    var i = ORDER.indexOf(id);
+    document.getElementById("prev").disabled = (i <= 0);
+    document.getElementById("next").disabled = (i >= ORDER.length - 1);
+
+    if(history.replaceState) history.replaceState(null, "", "#" + id);
+  }
+
+  function step(d){
+    var i = ORDER.indexOf(current) + d;
+    if(i >= 0 && i < ORDER.length) go(ORDER[i]);
+  }
+
+  document.getElementById("prev").addEventListener("click", function(){ step(-1); });
+  document.getElementById("next").addEventListener("click", function(){ step(1); });
+
+  document.addEventListener("click", function(e){
+    var t = e.target.closest("[data-go]");
+    if(t){ e.preventDefault(); go(t.dataset.go); return; }
+
+    /* single-select groups */
+    var grp = e.target.closest("[data-chip],[data-seg],[data-day],[data-plan]");
+    if(grp){
+      var kind = grp.hasAttribute("data-chip") ? "data-chip"
+               : grp.hasAttribute("data-seg")  ? "data-seg"
+               : grp.hasAttribute("data-day")  ? "data-day" : "data-plan";
+      grp.parentElement.querySelectorAll("[" + kind + "]").forEach(function(s){
+        s.setAttribute("aria-pressed", s === grp ? "true" : "false");
+      });
+      return;
+    }
+
+    var sw = e.target.closest("[data-switch]");
+    if(sw){ sw.setAttribute("aria-pressed", sw.getAttribute("aria-pressed") === "true" ? "false" : "true"); return; }
+
+    var pl = e.target.closest("[data-play]");
+    if(pl){ togglePlay(); }
+  });
+
+  document.addEventListener("keydown", function(e){
+    if(e.target.matches("input,textarea")) return;
+    if(e.key === "ArrowRight"){ step(1); }
+    if(e.key === "ArrowLeft"){ step(-1); }
+  });
+
+  /* ---------- fake player ---------- */
+  var timer = null, secs = 0, TOTAL = 1930;
+  function togglePlay(){
+    var bar  = document.querySelector("[data-playbar]");
+    var time = document.querySelector("[data-playtime]");
+    if(!bar) return;
+    if(timer){ clearInterval(timer); timer = null; return; }
+    timer = setInterval(function(){
+      secs = (secs + 13) % TOTAL;
+      bar.style.width = (secs / TOTAL * 100).toFixed(1) + "%";
+      time.textContent = Math.floor(secs / 60) + ":" + String(secs % 60).padStart(2, "0");
+    }, 120);
+  }
+
+  /* ---------- boot ---------- */
+  var start = (location.hash || "").replace("#", "");
+  go(views[start] ? start : "home");
+})();
+</script>
